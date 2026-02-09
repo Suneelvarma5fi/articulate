@@ -2,26 +2,160 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 39 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 39 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 120 100% 50%;
+    --border: 0 0% 20%;
+    --input: 0 0% 12%;
+    --ring: 39 100% 50%;
+    --radius: 0px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ═══════════════════════════════════
+   Terminal Cursor
+   ═══════════════════════════════════ */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1.06s step-end infinite;
+}
+
+/* ═══════════════════════════════════
+   Score Counter
+   ═══════════════════════════════════ */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.score-reveal {
+  animation: countUp 1.5s ease-out forwards;
+}
+
+/* ═══════════════════════════════════
+   Terminal Button Styles
+   ═══════════════════════════════════ */
+.btn-terminal {
+  @apply border px-6 py-3 font-mono text-sm tracking-terminal transition-all duration-150;
+}
+
+.btn-terminal-primary {
+  @apply btn-terminal border-primary text-primary;
+}
+
+.btn-terminal-primary:hover:not(:disabled) {
+  @apply bg-primary text-primary-foreground;
+  letter-spacing: 0.25em;
+}
+
+.btn-terminal-primary:disabled {
+  @apply cursor-not-allowed border-border text-muted-foreground;
+}
+
+.btn-terminal-secondary {
+  @apply btn-terminal border-border text-muted-foreground;
+}
+
+.btn-terminal-secondary:hover:not(:disabled) {
+  @apply border-foreground text-foreground;
+  letter-spacing: 0.25em;
+}
+
+/* ═══════════════════════════════════
+   Terminal Input Focus Glow
+   ═══════════════════════════════════ */
+.input-terminal {
+  @apply w-full resize-none border border-border bg-input p-4 font-mono text-sm text-foreground transition-all duration-150;
+  @apply placeholder:text-muted-foreground;
+  caret-color: hsl(var(--primary));
+}
+
+.input-terminal:focus {
+  @apply border-primary outline-none;
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.1);
+}
+
+.input-terminal:disabled {
+  @apply opacity-50;
+}
+
+/* ═══════════════════════════════════
+   Terminal Box Drawing
+   ═══════════════════════════════════ */
+.terminal-box {
+  @apply border border-border bg-background;
+}
+
+.terminal-box-primary {
+  @apply border border-primary;
+}
+
+/* ═══════════════════════════════════
+   Focus Ring for Accessibility
+   ═══════════════════════════════════ */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════
+   Scrollbar Styling
+   ═══════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* ═══════════════════════════════════
+   Selection Color
+   ═══════════════════════════════════ */
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
 }

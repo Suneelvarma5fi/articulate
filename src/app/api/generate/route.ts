@@ -1,0 +1,199 @@
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { generateImage, scoreImages } from "@/lib/grok/client";
+import { QUALITY_CREDITS, QualityLevel } from "@/types/database";
+import { rateLimit } from "@/lib/rate-limit";
+
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit: 5 generations per minute per user
+  const { success: withinLimit } = rateLimit(`generate:${userId}`, {
+    windowMs: 60_000,
+    max: 5,
+  });
+  if (!withinLimit) {
+    return NextResponse.json(
+      { error: "Too many requests. Wait a moment and try again." },
+      { status: 429 }
+    );
+  }
+
+  let body: { challengeId: string; articulationText: string; qualityLevel: QualityLevel };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const { challengeId, articulationText, qualityLevel } = body;
+
+  // Validate inputs
+  if (!challengeId || !articulationText || !qualityLevel) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
+  if (![1, 2, 3].includes(qualityLevel)) {
+    return NextResponse.json(
+      { error: "Invalid quality level" },
+      { status: 400 }
+    );
+  }
+
+  const trimmedText = articulationText.trim();
+  if (trimmedText.length < 10) {
+    return NextResponse.json(
+      { error: "Articulation must be at least 10 characters" },
+      { status: 400 }
+    );
+  }
+
+  // Fetch the challenge to validate character limit
+  const { data: challenge, error: challengeError } = await supabaseAdmin
+    .from("challenges")
+    .select("*")
+    .eq("id", challengeId)
+    .single();
+
+  if (challengeError || !challenge) {
+    return NextResponse.json(
+      { error: "Challenge not found" },
+      { status: 404 }
+    );
+  }
+
+  if (trimmedText.length > challenge.character_limit) {
+    return NextResponse.json(
+      { error: `Articulation exceeds ${challenge.character_limit} character limit` },
+      { status: 400 }
+    );
+  }
+
+  // Check credit balance
+  const creditsNeeded = QUALITY_CREDITS[qualityLevel];
+
+  const { data: balance } = await supabaseAdmin.rpc("get_credit_balance", {
+    user_id: userId,
+  });
+
+  if ((Number(balance) || 0) < creditsNeeded) {
+    return NextResponse.json(
+      { error: "Insufficient credits", balance: Number(balance) || 0, needed: creditsNeeded },
+      { status: 402 }
+    );
+  }
+
+  // Deduct credits first (we'll refund on failure)
+  const { error: deductError } = await supabaseAdmin
+    .from("credit_transactions")
+    .insert({
+      clerk_user_id: userId,
+      amount: -creditsNeeded,
+      transaction_type: "image_generation",
+      quality_level: qualityLevel,
+    });
+
+  if (deductError) {
+    return NextResponse.json(
+      { error: "Failed to deduct credits" },
+      { status: 500 }
+    );
+  }
+
+  try {
+    // Generate image via Gemini API (returns Buffer directly)
+    const imageBuffer = await generateImage(trimmedText, qualityLevel);
+
+    const attemptId = crypto.randomUUID();
+    const storagePath = `${userId}/${attemptId}.png`;
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("generated-images")
+      .upload(storagePath, imageBuffer, {
+        contentType: "image/png",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload image: ${uploadError.message}`);
+    }
+
+    const { data: publicUrl } = supabaseAdmin.storage
+      .from("generated-images")
+      .getPublicUrl(storagePath);
+
+    const generatedImageUrl = publicUrl.publicUrl;
+
+    // Score similarity via Grok Vision API
+    const score = await scoreImages(challenge.reference_image_url, generatedImageUrl, trimmedText);
+
+    // Save the attempt
+    const { data: attempt, error: attemptError } = await supabaseAdmin
+      .from("attempts")
+      .insert({
+        id: attemptId,
+        clerk_user_id: userId,
+        challenge_id: challengeId,
+        articulation_text: trimmedText,
+        character_count: trimmedText.length,
+        quality_level: qualityLevel,
+        credits_spent: creditsNeeded,
+        generated_image_url: generatedImageUrl,
+        score,
+        is_validated: true,
+      })
+      .select()
+      .single();
+
+    if (attemptError) {
+      throw new Error(`Failed to save attempt: ${attemptError.message}`);
+    }
+
+    // Update the credit transaction with the attempt ID
+    await supabaseAdmin
+      .from("credit_transactions")
+      .update({ related_attempt_id: attemptId })
+      .eq("clerk_user_id", userId)
+      .eq("transaction_type", "image_generation")
+      .is("related_attempt_id", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    // Get updated balance
+    const { data: newBalance } = await supabaseAdmin.rpc("get_credit_balance", {
+      user_id: userId,
+    });
+
+    return NextResponse.json({
+      attempt,
+      score,
+      generatedImageUrl,
+      creditsSpent: creditsNeeded,
+      remainingBalance: Number(newBalance) || 0,
+    });
+  } catch (error) {
+    // Refund credits on failure
+    await supabaseAdmin.from("credit_transactions").insert({
+      clerk_user_id: userId,
+      amount: creditsNeeded,
+      transaction_type: "image_generation",
+      quality_level: qualityLevel,
+    });
+
+    const message =
+      error instanceof Error ? error.message : "Generation failed";
+
+    return NextResponse.json(
+      { error: message, refunded: true },
+      { status: 500 }
+    );
+  }
+}
