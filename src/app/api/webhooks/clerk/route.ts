@@ -67,21 +67,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // Grant signup bonus credits
-    const { error: creditError } = await supabaseAdmin
+    // Idempotency: check if signup bonus was already granted (e.g. by ensureUser fallback)
+    const { data: existingBonus } = await supabaseAdmin
       .from("credit_transactions")
-      .insert({
-        clerk_user_id: clerkUserId,
-        amount: INITIAL_CREDITS,
-        transaction_type: "signup_bonus",
-      });
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .eq("transaction_type", "signup_bonus")
+      .single();
 
-    if (creditError) {
-      console.error("Failed to grant signup bonus:", creditError);
-      return NextResponse.json(
-        { error: "Failed to grant signup bonus" },
-        { status: 500 }
-      );
+    if (!existingBonus) {
+      const { error: creditError } = await supabaseAdmin
+        .from("credit_transactions")
+        .insert({
+          clerk_user_id: clerkUserId,
+          amount: INITIAL_CREDITS,
+          transaction_type: "signup_bonus",
+        });
+
+      if (creditError) {
+        console.error("Failed to grant signup bonus:", creditError);
+        return NextResponse.json(
+          { error: "Failed to grant signup bonus" },
+          { status: 500 }
+        );
+      }
     }
   }
 

@@ -21,10 +21,19 @@ export async function ensureUser(clerkUserId: string): Promise<void> {
     .from("users")
     .insert({ clerk_user_id: clerkUserId });
 
-  // Grant signup bonus
-  await supabaseAdmin.from("credit_transactions").insert({
-    clerk_user_id: clerkUserId,
-    amount: INITIAL_CREDITS,
-    transaction_type: "signup_bonus",
-  });
+  // Idempotency: check if signup bonus already exists (e.g. from Clerk webhook)
+  const { data: existingBonus } = await supabaseAdmin
+    .from("credit_transactions")
+    .select("id")
+    .eq("clerk_user_id", clerkUserId)
+    .eq("transaction_type", "signup_bonus")
+    .single();
+
+  if (!existingBonus) {
+    await supabaseAdmin.from("credit_transactions").insert({
+      clerk_user_id: clerkUserId,
+      amount: INITIAL_CREDITS,
+      transaction_type: "signup_bonus",
+    });
+  }
 }
