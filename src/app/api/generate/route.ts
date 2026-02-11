@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit: 5 generations per minute per user
-  const { success: withinLimit } = rateLimit(`generate:${userId}`, {
+  const { success: withinLimit } = await rateLimit(`generate:${userId}`, {
     windowMs: 60_000,
     max: 5,
   });
@@ -70,34 +70,27 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Check credit balance
+  // Atomic credit deduction (prevents double-spend race condition)
   const creditsNeeded = CREDITS_PER_GENERATION;
 
-  const { data: balance } = await supabaseAdmin.rpc("get_credit_balance", {
-    user_id: userId,
-  });
+  const { data: deductResult, error: deductError } = await supabaseAdmin.rpc(
+    "deduct_credits",
+    { p_user_id: userId, p_amount: creditsNeeded }
+  );
 
-  if ((Number(balance) || 0) < creditsNeeded) {
+  if (deductError) {
+    console.error("Credit deduction error:", deductError);
     return NextResponse.json(
-      { error: "Insufficient credits", balance: Number(balance) || 0, needed: creditsNeeded },
-      { status: 402 }
+      { error: "Failed to process credits" },
+      { status: 500 }
     );
   }
 
-  // Deduct credits first (we'll refund on failure)
-  const { error: deductError } = await supabaseAdmin
-    .from("credit_transactions")
-    .insert({
-      clerk_user_id: userId,
-      amount: -creditsNeeded,
-      transaction_type: "image_generation",
-      quality_level: 1,
-    });
-
-  if (deductError) {
+  const row = deductResult?.[0];
+  if (!row?.success) {
     return NextResponse.json(
-      { error: "Failed to deduct credits" },
-      { status: 500 }
+      { error: "Insufficient credits", balance: Number(row?.remaining) || 0, needed: creditsNeeded },
+      { status: 402 }
     );
   }
 
@@ -116,7 +109,8 @@ export async function POST(req: NextRequest) {
       });
 
     if (uploadError) {
-      throw new Error(`Failed to upload image: ${uploadError.message}`);
+      console.error("Image upload error:", uploadError);
+      throw new Error("Failed to upload generated image");
     }
 
     const { data: publicUrl } = supabaseAdmin.storage
@@ -147,7 +141,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (attemptError) {
-      throw new Error(`Failed to save attempt: ${attemptError.message}`);
+      console.error("Attempt save error:", attemptError);
+      throw new Error("Failed to save attempt");
     }
 
     // Update the credit transaction with the attempt ID
@@ -181,11 +176,10 @@ export async function POST(req: NextRequest) {
       quality_level: 1,
     });
 
-    const message =
-      error instanceof Error ? error.message : "Generation failed";
+    console.error("Generation failed:", error);
 
     return NextResponse.json(
-      { error: message, refunded: true },
+      { error: "Generation failed. Credits have been refunded.", refunded: true },
       { status: 500 }
     );
   }

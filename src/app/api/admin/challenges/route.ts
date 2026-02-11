@@ -62,6 +62,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Validate file size (max 10MB)
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json(
+      { error: "Image must be under 10MB" },
+      { status: 400 }
+    );
+  }
+
   // Upload to Supabase Storage
   const ext = file.name.split(".").pop() || "jpg";
   const filename = `${activeDate}-${Date.now()}.${ext}`;
@@ -77,7 +86,7 @@ export async function POST(req: NextRequest) {
   if (uploadError) {
     console.error("Storage upload error:", uploadError);
     return NextResponse.json(
-      { error: `Failed to upload image: ${uploadError.message}` },
+      { error: "Failed to upload image" },
       { status: 500 }
     );
   }

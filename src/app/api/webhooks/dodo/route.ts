@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : "Invalid signature";
     console.error("Dodo webhook verification failed:", message);
     return NextResponse.json(
-      { error: `Webhook verification failed: ${message}` },
+      { error: "Webhook verification failed" },
       { status: 400 }
     );
   }
