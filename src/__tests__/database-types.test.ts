@@ -1,33 +1,13 @@
 import {
-  QUALITY_CREDITS,
-  QUALITY_LABELS,
+  CREDITS_PER_GENERATION,
   CREDIT_PACKAGES,
   CATEGORIES,
   INITIAL_CREDITS,
-  QualityLevel,
 } from "@/types/database";
 
-describe("QUALITY_CREDITS", () => {
-  it("maps quality levels to correct credit costs", () => {
-    expect(QUALITY_CREDITS[1]).toBe(0.5);
-    expect(QUALITY_CREDITS[2]).toBe(1);
-    expect(QUALITY_CREDITS[3]).toBe(2);
-  });
-
-  it("has entries for all quality levels", () => {
-    const levels: QualityLevel[] = [1, 2, 3];
-    levels.forEach((level) => {
-      expect(QUALITY_CREDITS[level]).toBeDefined();
-      expect(typeof QUALITY_CREDITS[level]).toBe("number");
-    });
-  });
-});
-
-describe("QUALITY_LABELS", () => {
-  it("has names and icons for all quality levels", () => {
-    expect(QUALITY_LABELS[1]).toEqual({ name: "FAST", icon: "⚡" });
-    expect(QUALITY_LABELS[2]).toEqual({ name: "STANDARD", icon: "⭐" });
-    expect(QUALITY_LABELS[3]).toEqual({ name: "HIGH", icon: "💎" });
+describe("CREDITS_PER_GENERATION", () => {
+  it("costs 1 credit per generation", () => {
+    expect(CREDITS_PER_GENERATION).toBe(1);
   });
 });
 
@@ -70,7 +50,7 @@ describe("CATEGORIES", () => {
 });
 
 describe("INITIAL_CREDITS", () => {
-  it("is 50", () => {
-    expect(INITIAL_CREDITS).toBe(50);
+  it("is 5", () => {
+    expect(INITIAL_CREDITS).toBe(5);
   });
 });

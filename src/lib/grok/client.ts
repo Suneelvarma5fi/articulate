@@ -7,8 +7,6 @@ const GROK_CHAT_URL = "https://api.x.ai/v1/chat/completions";
  */
 export async function generateImage(
   prompt: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  qualityLevel: 1 | 2 | 3
 ): Promise<Buffer> {
   const response = await fetch(`${GEMINI_URL}?key=${process.env.GEMINI_API_KEY}`, {
     method: "POST",

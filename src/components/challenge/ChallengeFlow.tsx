@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { Challenge, QualityLevel, QUALITY_CREDITS, QUALITY_LABELS } from "@/types/database";
+import { Challenge, CREDITS_PER_GENERATION } from "@/types/database";
 import { Header } from "@/components/layout/Header";
 import { MatrixRain } from "@/components/animations/MatrixRain";
 import { Toast } from "@/components/ui/Toast";
@@ -26,7 +26,6 @@ export function ChallengeFlow() {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [articulationText, setArticulationText] = useState("");
-  const [qualityLevel, setQualityLevel] = useState<QualityLevel>(2);
   const [result, setResult] = useState<GenerationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -78,14 +77,14 @@ export function ChallengeFlow() {
   // Handle post-purchase redirect
   useEffect(() => {
     if (searchParams.get("purchase") === "success") {
-      const sessionId = searchParams.get("session_id");
+      const paymentId = searchParams.get("payment_id");
 
       const verifyAndRefresh = async () => {
-        if (sessionId) {
-          await fetch("/api/stripe/verify", {
+        if (paymentId) {
+          await fetch("/api/dodo/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId }),
+            body: JSON.stringify({ paymentId }),
           }).catch(() => {});
         }
 
@@ -111,7 +110,7 @@ export function ChallengeFlow() {
       return;
     }
 
-    const creditsNeeded = QUALITY_CREDITS[qualityLevel];
+    const creditsNeeded = CREDITS_PER_GENERATION;
     if (creditBalance !== null && creditBalance < creditsNeeded) {
       setShowPurchaseModal(true);
       return;
@@ -128,7 +127,6 @@ export function ChallengeFlow() {
         body: JSON.stringify({
           challengeId: challenge.id,
           articulationText: trimmed,
-          qualityLevel,
         }),
       });
 
@@ -181,7 +179,7 @@ export function ChallengeFlow() {
             <PurchaseModal
               onClose={() => setShowPurchaseModal(false)}
               currentBalance={creditBalance || 0}
-              creditsNeeded={QUALITY_CREDITS[qualityLevel]}
+              creditsNeeded={CREDITS_PER_GENERATION}
             />
           )}
 
@@ -336,38 +334,14 @@ export function ChallengeFlow() {
                   </div>
                 </div>
 
-                {/* Controls: quality dropdown + submit */}
-                <div className="flex shrink-0 gap-3 sm:w-56 sm:flex-col">
-                  <div className="flex-1 sm:flex-none">
-                    <label
-                      htmlFor="quality-select"
-                      className="mb-1 block text-xs tracking-wide text-muted-foreground"
-                    >
-                      QUALITY:
-                    </label>
-                    <select
-                      id="quality-select"
-                      value={qualityLevel}
-                      disabled={isLoading}
-                      onChange={(e) =>
-                        setQualityLevel(Number(e.target.value) as QualityLevel)
-                      }
-                      className="input-terminal w-full cursor-pointer disabled:opacity-50"
-                    >
-                      {([1, 2, 3] as QualityLevel[]).map((level) => (
-                        <option key={level} value={level}>
-                          {QUALITY_LABELS[level].name} [{QUALITY_CREDITS[level]} cr]
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
+                {/* Submit button */}
+                <div className="flex shrink-0 items-end sm:w-40">
                   <button
                     onClick={handleGenerate}
                     disabled={!canGenerate}
-                    className="btn-terminal-primary mt-auto w-full whitespace-nowrap disabled:opacity-50 sm:mt-0"
+                    className="btn-terminal-primary w-full whitespace-nowrap disabled:opacity-50"
                   >
-                    {isLoading ? "GENERATING..." : "SUBMIT"}
+                    {isLoading ? "GENERATING..." : `SUBMIT [${CREDITS_PER_GENERATION} cr]`}
                   </button>
                 </div>
               </div>

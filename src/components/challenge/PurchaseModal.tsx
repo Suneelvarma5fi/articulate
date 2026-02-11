@@ -34,7 +34,7 @@ export function PurchaseModal({
     setLoading(packageIndex);
 
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/dodo/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ packageIndex }),
@@ -96,12 +96,7 @@ export function PurchaseModal({
                 </div>
               </div>
               <div className="mb-3 text-xs text-muted-foreground">
-                <span>{pkg.credits * 2} Fast</span>
-                <span className="mx-2">|</span>
-                <span>{pkg.credits} Standard</span>
-                <span className="mx-2">|</span>
-                <span>{Math.floor(pkg.credits / 2)} High</span>
-                <span className="ml-1">generations</span>
+                {pkg.credits} generations
               </div>
               <button
                 onClick={() => handlePurchase(index)}

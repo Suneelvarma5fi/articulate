@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe/client";
-import { CREDIT_PACKAGES } from "@/types/database";
+import { getDodo } from "@/lib/dodo/client";
+import { CREDIT_PACKAGES, DODO_PRODUCT_IDS } from "@/types/database";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
@@ -38,37 +38,36 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const productId = DODO_PRODUCT_IDS[packageIndex];
+  if (!productId) {
+    return NextResponse.json(
+      { error: "Product not configured" },
+      { status: 500 }
+    );
+  }
+
   const pkg = CREDIT_PACKAGES[packageIndex];
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `${pkg.credits} Credits - Articulation Training`,
-              description: `${pkg.credits} credits for image generation`,
-            },
-            unit_amount: pkg.price,
-          },
-          quantity: 1,
-        },
-      ],
+    const user = await currentUser();
+    const email = user?.emailAddresses?.[0]?.emailAddress || "";
+
+    const payment = await getDodo().payments.create({
+      billing: { country: "US" },
+      customer: { email, name: user?.fullName || "Customer" },
+      product_cart: [{ product_id: productId, quantity: 1 }],
+      return_url: `${appUrl}/dashboard?purchase=success&payment_id={PAYMENT_ID}`,
       metadata: {
         clerk_user_id: userId,
         credits: String(pkg.credits),
         package_index: String(packageIndex),
       },
-      success_url: `${appUrl}/dashboard?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/dashboard?purchase=cancelled`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: payment.payment_link });
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    console.error("Dodo checkout error:", error);
     return NextResponse.json(
       { error: "Failed to create checkout session" },
       { status: 500 }

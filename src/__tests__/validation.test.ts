@@ -1,4 +1,4 @@
-import { QUALITY_CREDITS, QualityLevel } from "@/types/database";
+import { CREDITS_PER_GENERATION } from "@/types/database";
 
 // Replicate the validation logic from the generate route
 function validateArticulation(
@@ -28,8 +28,8 @@ function validateArticulation(
   return { valid: true };
 }
 
-function canAfford(balance: number, qualityLevel: QualityLevel): boolean {
-  return balance >= QUALITY_CREDITS[qualityLevel];
+function canAfford(balance: number): boolean {
+  return balance >= CREDITS_PER_GENERATION;
 }
 
 describe("validateArticulation", () => {
@@ -72,29 +72,15 @@ describe("validateArticulation", () => {
 });
 
 describe("canAfford", () => {
-  it("allows fast quality with 0.5 credits", () => {
-    expect(canAfford(0.5, 1)).toBe(true);
+  it("allows generation with 1 credit", () => {
+    expect(canAfford(1)).toBe(true);
   });
 
-  it("denies fast quality with 0 credits", () => {
-    expect(canAfford(0, 1)).toBe(false);
+  it("denies generation with 0 credits", () => {
+    expect(canAfford(0)).toBe(false);
   });
 
-  it("allows standard quality with exactly 1 credit", () => {
-    expect(canAfford(1, 2)).toBe(true);
-  });
-
-  it("denies high quality with 1.5 credits", () => {
-    expect(canAfford(1.5, 3)).toBe(false);
-  });
-
-  it("allows high quality with 2 credits", () => {
-    expect(canAfford(2, 3)).toBe(true);
-  });
-
-  it("allows any quality with 50 credits", () => {
-    expect(canAfford(50, 1)).toBe(true);
-    expect(canAfford(50, 2)).toBe(true);
-    expect(canAfford(50, 3)).toBe(true);
+  it("allows generation with many credits", () => {
+    expect(canAfford(50)).toBe(true);
   });
 });

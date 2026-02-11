@@ -5,13 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { MatrixRain } from "@/components/animations/MatrixRain";
-import { QUALITY_LABELS, QualityLevel } from "@/types/database";
+
+
 
 interface AttemptWithChallenge {
   id: string;
   articulation_text: string;
   character_count: number;
-  quality_level: QualityLevel;
+  quality_level: number;
   credits_spent: number;
   generated_image_url: string;
   score: number;
@@ -111,8 +112,6 @@ export function HistoryView() {
             {attempts.map((attempt) => {
               const challenge = attempt.challenges;
               const isExpanded = expandedId === attempt.id;
-              const quality = QUALITY_LABELS[attempt.quality_level];
-
               return (
                 <div key={attempt.id} className="terminal-box p-4">
                   {/* Summary row */}
@@ -149,7 +148,7 @@ export function HistoryView() {
                           {challenge.title || challenge.categories?.[0] || "Challenge"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {quality.icon} {quality.name} | {attempt.credits_spent} credits
+                          {attempt.credits_spent} credit{attempt.credits_spent !== 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>

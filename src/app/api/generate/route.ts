@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { generateImage, scoreImages } from "@/lib/grok/client";
-import { QUALITY_CREDITS, QualityLevel } from "@/types/database";
+import { CREDITS_PER_GENERATION } from "@/types/database";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
@@ -24,26 +24,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { challengeId: string; articulationText: string; qualityLevel: QualityLevel };
+  let body: { challengeId: string; articulationText: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { challengeId, articulationText, qualityLevel } = body;
+  const { challengeId, articulationText } = body;
 
   // Validate inputs
-  if (!challengeId || !articulationText || !qualityLevel) {
+  if (!challengeId || !articulationText) {
     return NextResponse.json(
       { error: "Missing required fields" },
-      { status: 400 }
-    );
-  }
-
-  if (![1, 2, 3].includes(qualityLevel)) {
-    return NextResponse.json(
-      { error: "Invalid quality level" },
       { status: 400 }
     );
   }
@@ -78,7 +71,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Check credit balance
-  const creditsNeeded = QUALITY_CREDITS[qualityLevel];
+  const creditsNeeded = CREDITS_PER_GENERATION;
 
   const { data: balance } = await supabaseAdmin.rpc("get_credit_balance", {
     user_id: userId,
@@ -98,7 +91,7 @@ export async function POST(req: NextRequest) {
       clerk_user_id: userId,
       amount: -creditsNeeded,
       transaction_type: "image_generation",
-      quality_level: qualityLevel,
+      quality_level: 1,
     });
 
   if (deductError) {
@@ -110,7 +103,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Generate image via Gemini API (returns Buffer directly)
-    const imageBuffer = await generateImage(trimmedText, qualityLevel);
+    const imageBuffer = await generateImage(trimmedText);
 
     const attemptId = crypto.randomUUID();
     const storagePath = `${userId}/${attemptId}.png`;
@@ -144,7 +137,7 @@ export async function POST(req: NextRequest) {
         challenge_id: challengeId,
         articulation_text: trimmedText,
         character_count: trimmedText.length,
-        quality_level: qualityLevel,
+        quality_level: 1,
         credits_spent: creditsNeeded,
         generated_image_url: generatedImageUrl,
         score,
@@ -185,7 +178,7 @@ export async function POST(req: NextRequest) {
       clerk_user_id: userId,
       amount: creditsNeeded,
       transaction_type: "image_generation",
-      quality_level: qualityLevel,
+      quality_level: 1,
     });
 
     const message =

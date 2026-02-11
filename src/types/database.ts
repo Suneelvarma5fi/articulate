@@ -1,5 +1,4 @@
 export type ChallengeStatus = "draft" | "scheduled" | "active" | "archived";
-export type QualityLevel = 1 | 2 | 3;
 export type TransactionType = "signup_bonus" | "image_generation" | "purchase";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
@@ -26,7 +25,7 @@ export interface Attempt {
   challenge_id: string;
   articulation_text: string;
   character_count: number;
-  quality_level: QualityLevel;
+  quality_level: number;
   credits_spent: number;
   generated_image_url: string;
   score: number;
@@ -40,7 +39,7 @@ export interface CreditTransaction {
   clerk_user_id: string;
   amount: number;
   transaction_type: TransactionType;
-  quality_level: QualityLevel | null;
+  quality_level: number | null;
   related_attempt_id: string | null;
   stripe_payment_intent_id: string | null;
   created_at: string;
@@ -60,36 +59,23 @@ export interface ChallengeSubmission {
   created_at: string;
 }
 
-export const QUALITY_CREDITS: Record<QualityLevel, number> = {
-  1: 0.5,
-  2: 1,
-  3: 2,
-};
-
-export const QUALITY_LABELS: Record<
-  QualityLevel,
-  { name: string; icon: string }
-> = {
-  1: { name: "FAST", icon: "⚡" },
-  2: { name: "STANDARD", icon: "⭐" },
-  3: { name: "HIGH", icon: "💎" },
-};
+export const CREDITS_PER_GENERATION = 1;
 
 export const CREDIT_PACKAGES = [
-  { credits: 50, price: 299, label: "50 CREDITS", priceLabel: "$2.99" },
+  { credits: 20, price: 199, label: "20 CREDITS", priceLabel: "$1.99" },
   {
-    credits: 150,
-    price: 699,
-    label: "150 CREDITS",
-    priceLabel: "$6.99",
+    credits: 100,
+    price: 799,
+    label: "100 CREDITS",
+    priceLabel: "$7.99",
     badge: "BEST VALUE",
   },
   {
-    credits: 500,
+    credits: 300,
     price: 1999,
-    label: "500 CREDITS",
+    label: "300 CREDITS",
     priceLabel: "$19.99",
-    badge: "MOST CREDITS",
+    badge: "PRO",
   },
 ] as const;
 
@@ -106,4 +92,11 @@ export const CATEGORIES = [
   "Brand & Marketing",
 ] as const;
 
-export const INITIAL_CREDITS = 50;
+// Dodo Payments product IDs — filled in after creating products in dashboard
+export const DODO_PRODUCT_IDS: string[] = [
+  process.env.NEXT_PUBLIC_DODO_PRODUCT_STARTER || "",  // 20 credits
+  process.env.NEXT_PUBLIC_DODO_PRODUCT_STANDARD || "",  // 100 credits
+  process.env.NEXT_PUBLIC_DODO_PRODUCT_PRO || "",       // 300 credits
+];
+
+export const INITIAL_CREDITS = 5;
