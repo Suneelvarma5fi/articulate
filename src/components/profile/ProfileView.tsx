@@ -1,136 +1,440 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
-import { MatrixRain } from "@/components/animations/MatrixRain";
+import { ScoreChart } from "./ScoreChart";
 
-interface Stats {
+const PAGE_SIZE = 20;
+
+interface KPIs {
   totalAttempts: number;
   averageScore: number;
   bestScore: number;
   totalCreditsSpent: number;
+  challengesAttempted: number;
+  creditBalance: number;
+}
+
+interface ScoreTrendPoint {
+  date: string;
+  avgScore: number;
+}
+
+interface RecentAttempt {
+  id: string;
+  score: number;
+  credits_spent: number;
+  created_at: string;
+  articulation_text: string;
+  generated_image_url: string;
+  challenge_id: string;
+  challenge_title: string;
+  challenge_categories: string[];
+  challenge_date: string;
+  challenge_reference_url: string;
+}
+
+interface ProfileData {
+  kpis: KPIs;
+  scoreTrend: ScoreTrendPoint[];
+  categoryBreakdown: Array<{
+    category: string;
+    attempts: number;
+    avgScore: number;
+  }>;
+  recentAttempts: RecentAttempt[];
+  categories: string[];
+  activeFilter: string | null;
 }
 
 export function ProfileView() {
   const { user } = useUser();
-  const [creditBalance, setCreditBalance] = useState<number | null>(null);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [expandedAttempt, setExpandedAttempt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetch("/api/credits/balance")
-      .then((res) => res.json())
-      .then((data) => setCreditBalance(data.balance))
-      .catch(() => {});
-
-    // Fetch attempt stats from history
-    fetch("/api/attempts/history?page=1")
-      .then((res) => res.json())
-      .then((data) => {
-        const attempts = data.attempts || [];
-        const total = data.total || 0;
-        if (total > 0) {
-          const scores = attempts.map(
-            (a: { score: number }) => a.score
-          );
-          const creditsSpent = attempts.reduce(
-            (sum: number, a: { credits_spent: number }) =>
-              sum + a.credits_spent,
-            0
-          );
-          setStats({
-            totalAttempts: total,
-            averageScore: Math.round(
-              scores.reduce((a: number, b: number) => a + b, 0) / scores.length
-            ),
-            bestScore: Math.max(...scores),
-            totalCreditsSpent: creditsSpent,
-          });
-        }
-      })
-      .catch(() => {});
+  const fetchProfile = useCallback(async (category?: string | null) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (category) params.set("category", category);
+      const res = await fetch(`/api/user/profile?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProfileData(data);
+      }
+    } catch {
+      // silently fail
+    }
+    setLoading(false);
   }, []);
 
+  useEffect(() => {
+    fetchProfile(selectedCategory);
+    setPage(1);
+  }, [selectedCategory, fetchProfile]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingImage(true);
+    try {
+      await user.setProfileImage({ file });
+    } catch (err) {
+      console.error("Failed to upload profile image:", err);
+    }
+    setUploadingImage(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const kpis = profileData?.kpis;
+  const allAttempts = profileData?.recentAttempts ?? [];
+  const totalPages = Math.max(1, Math.ceil(allAttempts.length / PAGE_SIZE));
+  const paginatedAttempts = allAttempts.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
+
   return (
-    <>
-      <MatrixRain />
-      <main className="relative z-10 min-h-screen p-4">
-        <div className="mx-auto max-w-4xl">
-          <Header creditBalance={creditBalance} />
+    <main className="min-h-screen px-4 py-6">
+      <div className="mx-auto max-w-6xl">
+        <Header creditBalance={kpis?.creditBalance ?? null} />
 
-          <div className="mb-6 text-center">
-            <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-              ═══════════════════════════════════════════════
-            </div>
-            <h1 className="my-2 text-lg font-bold tracking-wide text-white">
-              PROFILE
-            </h1>
-            <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-              ═══════════════════════════════════════════════
-            </div>
-          </div>
-
-          {/* User info */}
-          <div className="terminal-box mb-6 p-6">
-            <div className="mb-4 text-center">
-              <p className="text-lg text-white">
-                {user?.firstName || user?.username || "User"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {user?.primaryEmailAddress?.emailAddress}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Member since{" "}
-                {user?.createdAt
-                  ? new Date(user.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                    })
-                  : "--"}
-              </p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div className="terminal-box p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-white">
-                {stats?.totalAttempts ?? "--"}
-              </p>
-              <p className="text-xs text-muted-foreground">ATTEMPTS</p>
-            </div>
-            <div className="terminal-box p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-white">
-                {stats?.averageScore ?? "--"}
-              </p>
-              <p className="text-xs text-muted-foreground">AVG SCORE</p>
-            </div>
-            <div className="terminal-box p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-primary">
-                {stats?.bestScore ?? "--"}
-              </p>
-              <p className="text-xs text-muted-foreground">BEST SCORE</p>
-            </div>
-            <div className="terminal-box-primary p-4 text-center">
-              <p className="font-mono text-2xl font-bold text-primary">
-                {creditBalance !== null ? creditBalance : "--"}
-              </p>
-              <p className="text-xs text-muted-foreground">CREDITS</p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-3">
+        {/* Top row: User card + KPIs + Score graph */}
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[200px_1fr_1fr]">
+          {/* User card */}
+          <div className="card flex flex-col items-center p-5">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+              className="group relative mb-3 h-16 w-16 overflow-hidden rounded-full"
+              title="Change profile photo"
+            >
+              {user?.imageUrl ? (
+                <Image
+                  src={user.imageUrl}
+                  alt="Profile"
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-secondary text-lg font-bold text-muted-foreground">
+                  {(user?.firstName?.[0] || user?.username?.[0] || "?").toUpperCase()}
+                </div>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                {uploadingImage ? (
+                  <span className="text-[10px] text-white">...</span>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 11.5V14h2.5L12.06 6.44 9.56 3.94 2 11.5z" />
+                    <path d="M9.56 3.94l2.5 2.5" />
+                  </svg>
+                )}
+              </div>
+            </button>
+            <p className="text-center text-sm font-medium text-foreground">
+              {user?.firstName || user?.username || "User"}
+            </p>
+            <p className="mt-0.5 text-center text-[11px] text-muted-foreground">
+              {user?.primaryEmailAddress?.emailAddress}
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Since{" "}
+              {user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "--"}
+            </p>
             <Link
               href="/submit"
-              className="btn-terminal-secondary block w-full text-center"
+              className="btn-secondary mt-4 w-full py-1.5 text-[11px]"
             >
-              SUBMIT A CHALLENGE
+              Submit Challenge
             </Link>
           </div>
+
+          {/* KPIs */}
+          <div className="card p-5">
+            <p className="mb-4 text-xs font-medium text-muted-foreground">
+              Performance
+              {selectedCategory && (
+                <span className="ml-1 text-primary">
+                  / {selectedCategory}
+                </span>
+              )}
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div>
+                <p className="font-mono text-2xl font-bold text-foreground">
+                  {kpis?.totalAttempts ?? "--"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Attempts</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-bold text-foreground">
+                  {kpis?.averageScore ?? "--"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Avg Score</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-bold text-primary">
+                  {kpis?.bestScore ?? "--"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Best Score</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-bold text-foreground">
+                  {kpis?.challengesAttempted ?? "--"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Challenges</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-bold text-foreground">
+                  {kpis?.totalCreditsSpent ?? "--"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Credits Spent</p>
+              </div>
+              <div>
+                <p className="font-mono text-2xl font-bold text-primary">
+                  {kpis?.creditBalance ?? "--"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Balance</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Score trend graph */}
+          <div className="card p-5">
+            <p className="mb-3 text-xs font-medium text-muted-foreground">
+              Score Trend
+            </p>
+            <div className="h-32">
+              <ScoreChart data={profileData?.scoreTrend ?? []} />
+            </div>
+          </div>
         </div>
-      </main>
-    </>
+
+        {/* Category filter bar */}
+        <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs transition-all ${
+              !selectedCategory
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {(profileData?.categories ?? []).map((cat) => (
+            <button
+              key={cat}
+              onClick={() =>
+                setSelectedCategory(selectedCategory === cat ? null : cat)
+              }
+              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs transition-all ${
+                selectedCategory === cat
+                  ? "bg-primary/10 font-medium text-primary"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Attempt history */}
+        <div className="card">
+          <div className="border-b border-border px-4 py-3">
+            <p className="text-xs font-medium text-muted-foreground">
+              Attempt History
+              {allAttempts.length > 0 && ` — ${allAttempts.length} records`}
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            </div>
+          ) : !allAttempts.length ? (
+            <div className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">No attempts found</p>
+              <p className="mt-1 text-xs text-muted-foreground/60">
+                Complete a challenge to see your history here.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="divide-y divide-border/50">
+                {paginatedAttempts.map((attempt) => {
+                  const isExpanded = expandedAttempt === attempt.id;
+                  return (
+                    <div key={attempt.id}>
+                      <button
+                        onClick={() =>
+                          setExpandedAttempt(isExpanded ? null : attempt.id)
+                        }
+                        className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-secondary/20"
+                      >
+                        {/* Thumbnails */}
+                        <div className="flex gap-1.5">
+                          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+                            <Image
+                              src={attempt.challenge_reference_url}
+                              alt="Ref"
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </div>
+                          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+                            <Image
+                              src={attempt.generated_image_url}
+                              alt="Gen"
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Meta */}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm text-foreground">
+                            {attempt.challenge_title}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {attempt.challenge_date} &middot;{" "}
+                            {attempt.challenge_categories[0] || "General"}
+                          </p>
+                        </div>
+
+                        {/* Score */}
+                        <div className="shrink-0 text-right">
+                          <span
+                            className={`font-mono text-lg font-bold ${
+                              attempt.score >= 80
+                                ? "text-terminal-green"
+                                : attempt.score >= 50
+                                ? "text-primary"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {attempt.score}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            /100
+                          </span>
+                        </div>
+
+                        {/* Expand indicator */}
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {isExpanded ? "−" : "+"}
+                        </span>
+                      </button>
+
+                      {/* Expanded detail */}
+                      {isExpanded && (
+                        <div className="border-t border-border/50 bg-secondary/10 px-4 py-4">
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <p className="mb-1 text-[11px] font-medium text-muted-foreground">
+                                Reference
+                              </p>
+                              <div className="relative aspect-square w-full max-w-xs overflow-hidden rounded-lg">
+                                <Image
+                                  src={attempt.challenge_reference_url}
+                                  alt="Reference"
+                                  fill
+                                  className="object-cover"
+                                  sizes="300px"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <p className="mb-1 text-[11px] font-medium text-muted-foreground">
+                                Generated
+                              </p>
+                              <div className="relative aspect-square w-full max-w-xs overflow-hidden rounded-lg">
+                                <Image
+                                  src={attempt.generated_image_url}
+                                  alt="Generated"
+                                  fill
+                                  className="object-cover"
+                                  sizes="300px"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <p className="mb-1 text-[11px] font-medium text-muted-foreground">
+                              Articulation
+                            </p>
+                            <p className="rounded-lg bg-input p-3 text-sm italic text-foreground">
+                              &ldquo;{attempt.articulation_text}&rdquo;
+                            </p>
+                          </div>
+                          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>Score: {attempt.score}/100</span>
+                            <span>Credits: {attempt.credits_spent}</span>
+                            <Link
+                              href={`/challenge/${attempt.challenge_id}`}
+                              className="text-primary transition-colors hover:text-primary/80"
+                            >
+                              Try again
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-xs text-muted-foreground">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }

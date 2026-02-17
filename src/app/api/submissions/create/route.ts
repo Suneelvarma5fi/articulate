@@ -31,6 +31,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Validate URL is a proper HTTPS image URL
+  try {
+    const parsed = new URL(referenceImageUrl);
+    if (parsed.protocol !== "https:") {
+      return NextResponse.json(
+        { error: "Image URL must use HTTPS" },
+        { status: 400 }
+      );
+    }
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid image URL" },
+      { status: 400 }
+    );
+  }
+
   const { data: submission, error } = await supabaseAdmin
     .from("challenge_submissions")
     .insert({

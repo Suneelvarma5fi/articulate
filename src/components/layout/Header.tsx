@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { useState } from "react";
 
 interface HeaderProps {
   creditBalance: number | null;
@@ -11,99 +10,76 @@ interface HeaderProps {
 
 const NAV_ITEMS = [
   { label: "DASHBOARD", href: "/dashboard" },
-  { label: "HISTORY", href: "/history" },
   { label: "PROFILE", href: "/profile" },
 ];
 
 export function Header({ creditBalance }: HeaderProps) {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="relative z-10 mb-8">
-      {/* Top bar */}
+    <header className="mb-10 border-b border-[#2a2a2a]/10 pb-6">
       <div className="flex items-center justify-between">
-        <Link href="/dashboard" className="border border-border px-3 py-2 sm:px-4">
-          <span className="text-xs tracking-terminal text-white sm:text-sm">
-            ARTICULATE
-          </span>
+        {/* Logo */}
+        <Link href="/dashboard" className="text-2xl tracking-wider text-[#2a2a2a]">
+          ARTICULATE_
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="hidden border border-primary px-4 py-2 sm:block">
-            <span className="font-mono text-sm text-primary">
-              CREDITS: {creditBalance !== null ? creditBalance : "--"}
+        {/* Right side: nav + credits + user */}
+        <div className="flex items-center gap-6">
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-6 sm:flex">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`text-[11px] tracking-[0.2em] transition-colors ${
+                    isActive
+                      ? "text-[#2a2a2a]"
+                      : "text-[#2a2a2a]/50 hover:text-[#2a2a2a]"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Credits badge */}
+          <div className="flex items-center gap-1.5 rounded-full border border-[#2a2a2a]/15 px-4 py-1.5">
+            <span className="text-[11px] tracking-[0.15em] text-[#2a2a2a]/50">
+              CREDITS
+            </span>
+            <span className="text-sm tracking-wide text-[#2a2a2a]">
+              {creditBalance !== null ? creditBalance : "--"}
             </span>
           </div>
 
-          {/* Mobile: credit + hamburger */}
-          <span className="font-mono text-xs text-primary sm:hidden">
-            {creditBalance !== null ? creditBalance : "--"}
-          </span>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="border border-border p-2 text-foreground sm:hidden"
-            aria-label="Toggle menu"
-          >
-            <span className="font-mono text-sm">{mobileMenuOpen ? "\u2715" : "\u2261"}</span>
-          </button>
-
+          {/* Clerk user button */}
           <UserButton afterSignOutUrl="/" />
         </div>
       </div>
 
-      {/* Desktop navigation */}
-      <nav className="mt-4 hidden border-t border-border pt-4 sm:block">
-        <div className="flex gap-1">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-4 py-2 text-xs tracking-wide transition-all ${
-                  isActive
-                    ? "border-b-2 border-primary text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
+      {/* Mobile nav */}
+      <nav className="mt-4 flex items-center gap-4 sm:hidden">
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`text-[11px] tracking-[0.2em] transition-colors ${
+                isActive
+                  ? "text-[#2a2a2a]"
+                  : "text-[#2a2a2a]/50 hover:text-[#2a2a2a]"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
-
-      {/* Mobile navigation dropdown */}
-      {mobileMenuOpen && (
-        <nav className="absolute left-0 right-0 top-full mt-1 border border-border bg-background sm:hidden">
-          <div className="border-b border-border px-4 py-3">
-            <span className="font-mono text-xs text-muted-foreground">
-              CREDITS:{" "}
-            </span>
-            <span className="font-mono text-xs text-primary">
-              {creditBalance !== null ? creditBalance : "--"}
-            </span>
-          </div>
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-3 text-xs tracking-wide transition-all ${
-                  isActive
-                    ? "border-l-2 border-primary text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-      )}
     </header>
   );
 }

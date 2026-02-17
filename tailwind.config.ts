@@ -45,17 +45,7 @@ const config: Config = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         terminal: {
-          black: "#000000",
-          dark: "#0a0a0a",
-          amber: "#FFA500",
-          green: "#00FF00",
-          red: "#FF0000",
-          gray: {
-            100: "#999999",
-            200: "#666666",
-            300: "#444444",
-            400: "#333333",
-          },
+          green: "#22c55e",
         },
       },
       fontFamily: {
@@ -66,6 +56,7 @@ const config: Config = {
           "monospace",
         ],
         sans: ["var(--font-geist-sans)", "Inter", "SF Pro", "sans-serif"],
+        handjet: ["var(--font-handjet)", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -75,15 +66,6 @@ const config: Config = {
       letterSpacing: {
         terminal: "0.2em",
         wide: "0.1em",
-      },
-      keyframes: {
-        "pulse-border": {
-          "0%, 100%": { borderColor: "hsl(var(--border))" },
-          "50%": { borderColor: "hsl(var(--primary))" },
-        },
-      },
-      animation: {
-        "pulse-border": "pulse-border 2s ease-in-out infinite",
       },
     },
   },

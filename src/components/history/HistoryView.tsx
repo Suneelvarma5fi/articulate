@@ -165,7 +165,7 @@ export function HistoryView() {
                       </div>
                       <div className="flex gap-2">
                         <Link
-                          href={`/dashboard?prefill=${encodeURIComponent(attempt.articulation_text)}`}
+                          href={`/challenge/${challenge.id}?prefill=${encodeURIComponent(attempt.articulation_text)}`}
                           className="text-xs text-primary transition-colors hover:text-primary/80"
                         >
                           [ USE ]

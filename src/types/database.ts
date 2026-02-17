@@ -62,20 +62,22 @@ export interface ChallengeSubmission {
 export const CREDITS_PER_GENERATION = 1;
 
 export const CREDIT_PACKAGES = [
-  { credits: 20, price: 199, label: "20 CREDITS", priceLabel: "$1.99" },
+  { credits: 20, price: 499, label: "20 CREDITS", priceLabel: "$4.99", perCredit: "$0.25" },
   {
-    credits: 100,
-    price: 799,
-    label: "100 CREDITS",
-    priceLabel: "$7.99",
-    badge: "BEST VALUE",
+    credits: 60,
+    price: 999,
+    label: "60 CREDITS",
+    priceLabel: "$9.99",
+    perCredit: "$0.17",
+    badge: "POPULAR",
   },
   {
-    credits: 300,
+    credits: 150,
     price: 1999,
-    label: "300 CREDITS",
+    label: "150 CREDITS",
     priceLabel: "$19.99",
-    badge: "PRO",
+    perCredit: "$0.13",
+    badge: "BEST VALUE",
   },
 ] as const;
 

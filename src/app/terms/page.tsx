@@ -40,7 +40,7 @@ export default function TermsPage() {
           </h2>
           <p>
             Credits are required to generate images. Credits can be purchased
-            via Stripe. New users receive 50 free credits upon registration.
+            via Dodo Payments. New users receive 5 free credits upon registration.
             Credits are non-transferable between accounts.
           </p>
 

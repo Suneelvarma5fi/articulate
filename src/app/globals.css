@@ -6,31 +6,61 @@
   .text-balance {
     text-wrap: balance;
   }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
+    --background: 60 5% 84%;
+    --foreground: 0 0% 16%;
+    --card: 60 4% 88%;
+    --card-foreground: 0 0% 16%;
+    --popover: 60 4% 88%;
+    --popover-foreground: 0 0% 16%;
+    --primary: 0 0% 16%;
+    --primary-foreground: 60 5% 84%;
+    --secondary: 60 4% 80%;
+    --secondary-foreground: 0 0% 16%;
+    --muted: 60 4% 80%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 16%;
+    --accent-foreground: 60 5% 84%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --border: 60 3% 75%;
+    --input: 60 4% 80%;
+    --ring: 0 0% 16%;
+    --radius: 12px;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
     --foreground: 0 0% 96%;
     --card: 0 0% 6%;
     --card-foreground: 0 0% 96%;
     --popover: 0 0% 6%;
     --popover-foreground: 0 0% 96%;
-    --primary: 39 100% 50%;
+    --primary: 38 92% 50%;
     --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 96%;
     --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 50%;
-    --accent: 39 100% 50%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 38 92% 50%;
     --accent-foreground: 0 0% 0%;
-    --destructive: 0 100% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 120 100% 50%;
-    --border: 0 0% 20%;
-    --input: 0 0% 12%;
-    --ring: 39 100% 50%;
-    --radius: 0px;
+    --success: 142 71% 45%;
+    --border: 0 0% 14%;
+    --input: 0 0% 10%;
+    --ring: 38 92% 50%;
   }
 }
 
@@ -44,19 +74,7 @@
 }
 
 /* ═══════════════════════════════════
-   Terminal Cursor
-   ═══════════════════════════════════ */
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.cursor-blink {
-  animation: blink 1.06s step-end infinite;
-}
-
-/* ═══════════════════════════════════
-   Score Counter
+   Score Counter Animation
    ═══════════════════════════════════ */
 @keyframes countUp {
   from { opacity: 0; transform: translateY(10px); }
@@ -68,65 +86,102 @@
 }
 
 /* ═══════════════════════════════════
-   Terminal Button Styles
+   Buttons
    ═══════════════════════════════════ */
-.btn-terminal {
-  @apply border px-6 py-3 font-mono text-sm tracking-terminal transition-all duration-150;
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all;
 }
 
-.btn-terminal-primary {
-  @apply btn-terminal border-primary text-primary;
+.btn-primary:hover:not(:disabled) {
+  @apply brightness-110;
 }
 
-.btn-terminal-primary:hover:not(:disabled) {
-  @apply bg-primary text-primary-foreground;
-  letter-spacing: 0.25em;
+.btn-primary:disabled {
+  @apply cursor-not-allowed opacity-40;
 }
 
-.btn-terminal-primary:disabled {
-  @apply cursor-not-allowed border-border text-muted-foreground;
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-lg border border-border bg-transparent px-5 py-2.5 text-sm font-medium text-foreground transition-all;
 }
 
-.btn-terminal-secondary {
-  @apply btn-terminal border-border text-muted-foreground;
+.btn-secondary:hover:not(:disabled) {
+  @apply bg-secondary;
 }
 
-.btn-terminal-secondary:hover:not(:disabled) {
-  @apply border-foreground text-foreground;
-  letter-spacing: 0.25em;
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  @apply bg-secondary text-foreground;
 }
 
 /* ═══════════════════════════════════
-   Terminal Input Focus Glow
+   Cards
    ═══════════════════════════════════ */
-.input-terminal {
-  @apply w-full resize-none border border-border bg-input p-4 font-mono text-sm text-foreground transition-all duration-150;
+.card {
+  @apply rounded-xl border border-border bg-card;
+}
+
+.card-hover {
+  @apply card transition-all;
+}
+
+.card-hover:hover {
+  @apply border-muted-foreground/30 bg-secondary/50;
+}
+
+/* ═══════════════════════════════════
+   Input
+   ═══════════════════════════════════ */
+.input-clean {
+  @apply w-full resize-none rounded-lg border border-border bg-input p-4 text-sm text-foreground transition-all;
   @apply placeholder:text-muted-foreground;
   caret-color: hsl(var(--primary));
 }
 
-.input-terminal:focus {
-  @apply border-primary outline-none;
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.1);
+.input-clean:focus {
+  @apply border-primary/50 outline-none ring-2 ring-primary/20;
 }
 
-.input-terminal:disabled {
+.input-clean:disabled {
   @apply opacity-50;
 }
 
 /* ═══════════════════════════════════
-   Terminal Box Drawing
+   Legacy aliases (for pages not yet redesigned)
    ═══════════════════════════════════ */
 .terminal-box {
-  @apply border border-border bg-background;
+  @apply rounded-xl border border-border bg-card;
 }
 
-.terminal-box-primary {
-  @apply border border-primary;
+.btn-terminal-primary {
+  @apply btn-primary;
+}
+
+.btn-terminal-secondary {
+  @apply btn-secondary;
+}
+
+.input-terminal {
+  @apply input-clean font-mono;
+}
+
+.input-terminal:focus {
+  @apply border-primary/50 outline-none ring-2 ring-primary/20;
+}
+
+.cursor-blink {
+  animation: blink 1.06s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 /* ═══════════════════════════════════
-   Focus Ring for Accessibility
+   Focus Ring
    ═══════════════════════════════════ */
 *:focus-visible {
   outline: 2px solid hsl(var(--primary));
@@ -134,7 +189,7 @@
 }
 
 /* ═══════════════════════════════════
-   Scrollbar Styling
+   Scrollbar
    ═══════════════════════════════════ */
 ::-webkit-scrollbar {
   width: 6px;
@@ -146,6 +201,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -153,7 +209,7 @@
 }
 
 /* ═══════════════════════════════════
-   Selection Color
+   Selection
    ═══════════════════════════════════ */
 ::selection {
   background: hsl(var(--primary) / 0.3);

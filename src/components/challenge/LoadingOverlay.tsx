@@ -30,7 +30,7 @@ export function LoadingOverlay() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-terminal-black/95" role="alert" aria-live="assertive" aria-label="Generating image">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95" role="alert" aria-live="assertive" aria-label="Generating image">
       <div className="text-center">
         <p className="mb-8 text-sm tracking-terminal text-muted-foreground">
           GENERATING YOUR VISION...

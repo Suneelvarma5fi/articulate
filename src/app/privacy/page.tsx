@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           </h2>
           <p>
             We use Clerk for authentication, Supabase for data storage, Grok
-            API for image generation and scoring, and Stripe for payment
+            API for image generation and scoring, and Dodo Payments for payment
             processing. Each service has its own privacy policy.
           </p>
 

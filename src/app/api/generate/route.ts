@@ -63,6 +63,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Block attempts on future (locked) challenges
+  const today = new Date().toISOString().split("T")[0];
+  if (challenge.active_date > today) {
+    return NextResponse.json(
+      { error: "Challenge is locked", locked: true },
+      { status: 403 }
+    );
+  }
+
   if (trimmedText.length > challenge.character_limit) {
     return NextResponse.json(
       { error: `Articulation exceeds ${challenge.character_limit} character limit` },
@@ -169,12 +178,13 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     // Refund credits on failure
-    await supabaseAdmin.from("credit_transactions").insert({
+    const { error: refundErr } = await supabaseAdmin.from("credit_transactions").insert({
       clerk_user_id: userId,
       amount: creditsNeeded,
       transaction_type: "image_generation",
       quality_level: 1,
     });
+    if (refundErr) console.error("Refund insert failed:", refundErr);
 
     console.error("Generation failed:", error);
 

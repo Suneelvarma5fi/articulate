@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { CREDIT_PACKAGES } from "@/types/database";
 
 interface PurchaseModalProps {
@@ -16,6 +17,7 @@ export function PurchaseModal({
 }: PurchaseModalProps) {
   const [loading, setLoading] = useState<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   // Escape key closes modal
   useEffect(() => {
@@ -37,7 +39,7 @@ export function PurchaseModal({
       const res = await fetch("/api/dodo/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageIndex }),
+        body: JSON.stringify({ packageIndex, returnPath: pathname }),
       });
 
       const data = await res.json();
@@ -57,7 +59,7 @@ export function PurchaseModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-terminal-black/90 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="Purchase credits"

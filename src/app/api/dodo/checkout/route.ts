@@ -22,14 +22,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { packageIndex: number };
+  let body: { packageIndex: number; returnPath?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { packageIndex } = body;
+  const { packageIndex, returnPath } = body;
+
+  // Validate returnPath to prevent open redirect
+  const safePath =
+    returnPath && typeof returnPath === "string" && returnPath.startsWith("/") && !returnPath.startsWith("//")
+      ? returnPath
+      : "/dashboard";
 
   if (packageIndex < 0 || packageIndex >= CREDIT_PACKAGES.length) {
     return NextResponse.json(
@@ -57,7 +63,7 @@ export async function POST(req: NextRequest) {
       billing: { country: "US" },
       customer: { email, name: user?.fullName || "Customer" },
       product_cart: [{ product_id: productId, quantity: 1 }],
-      return_url: `${appUrl}/dashboard?purchase=success&payment_id={PAYMENT_ID}`,
+      return_url: `${appUrl}${safePath}?purchase=success&payment_id={PAYMENT_ID}`,
       metadata: {
         clerk_user_id: userId,
         credits: String(pkg.credits),
