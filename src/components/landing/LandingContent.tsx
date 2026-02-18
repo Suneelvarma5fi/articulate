@@ -87,6 +87,23 @@ export function LandingContent() {
           >
             <source src="/hero-video-bright.mp4" type="video/mp4" />
           </video>
+          {/* Snake wave text */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6" style={{ marginTop: "-200px" }}>
+            <p
+              className="flex flex-wrap justify-center gap-x-[0.35em] text-lg tracking-[0.15em] text-white/80 sm:text-2xl md:text-3xl lg:text-4xl"
+              style={{ textShadow: "0 1px 20px rgba(0,0,0,0.5)" }}
+            >
+              {"If you say the right words in right order, you can change your world".split(" ").map((word, i) => (
+                <span
+                  key={i}
+                  className="inline-block animate-[snake_4s_ease-in-out_infinite]"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                >
+                  {word}
+                </span>
+              ))}
+            </p>
+          </div>
           {/* Subtle gradient for nav readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
           {/* Film grain overlay */}

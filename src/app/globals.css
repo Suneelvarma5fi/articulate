@@ -74,6 +74,15 @@
 }
 
 /* ═══════════════════════════════════
+   Wave Text Animation
+   ═══════════════════════════════════ */
+@keyframes snake {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-6px); }
+  75% { transform: translateY(6px); }
+}
+
+/* ═══════════════════════════════════
    Score Counter Animation
    ═══════════════════════════════════ */
 @keyframes countUp {
