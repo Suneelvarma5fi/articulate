@@ -43,11 +43,18 @@ export async function generateImage(
   return Buffer.from(imagePart.inlineData.data, "base64");
 }
 
+import { ScoreBreakdown } from "@/types/database";
+
+export interface ScoreResult {
+  total: number;
+  breakdown: ScoreBreakdown;
+}
+
 export async function scoreImages(
   referenceImageUrl: string,
   generatedImageUrl: string,
   articulationText: string,
-): Promise<number> {
+): Promise<ScoreResult> {
   const scoringPrompt = `You are a STRICT image similarity judge. You will see:
 1. REFERENCE image (the target the user was trying to reproduce)
 2. GENERATED image (created from the user's text description below)
@@ -57,10 +64,10 @@ USER'S ARTICULATION: "${articulationText}"
 Your job: score how well the GENERATED image reproduces the REFERENCE image.
 
 ━━━ HARD CAPS (apply BEFORE rubric — these override everything) ━━━
-- Wrong primary subject (e.g., cat instead of dog, car instead of boat) → MAX 20
-- Completely wrong scene type (indoor vs outdoor, day vs night) → MAX 30
-- Main subject entirely missing → MAX 10
-- Opposite color scheme (dark scene vs bright scene) → MAX 35
+- Wrong primary subject (e.g., cat instead of dog, car instead of boat) → MAX 20 total
+- Completely wrong scene type (indoor vs outdoor, day vs night) → MAX 30 total
+- Main subject entirely missing → MAX 10 total
+- Opposite color scheme (dark scene vs bright scene) → MAX 35 total
 
 ━━━ RUBRIC ━━━
 
@@ -95,7 +102,15 @@ DETAIL FIDELITY (0-20 points):
 
 IMPORTANT: Most image pairs should score between 25-55. Scores above 75 are exceptional and rare. Do NOT be generous.
 
-Return ONLY a single integer 0-100. No explanation, no text, just the number.`;
+Return ONLY valid JSON in this exact format (no markdown, no explanation):
+{"total":72,"subject":28,"composition":18,"color":14,"detail":12}
+
+Where:
+- total = subject + composition + color + detail (0-100)
+- subject = Subject Accuracy score (0-35)
+- composition = Composition & Layout score (0-25)
+- color = Color & Lighting score (0-20)
+- detail = Detail Fidelity score (0-20)`;
 
   const response = await fetch(GROK_CHAT_URL, {
     method: "POST",
@@ -136,12 +151,46 @@ Return ONLY a single integer 0-100. No explanation, no text, just the number.`;
 
   const data = await response.json();
   const scoreText = data.choices?.[0]?.message?.content?.trim();
-  const score = parseInt(scoreText, 10);
 
-  if (isNaN(score) || score < 0 || score > 100) {
-    console.error("Invalid score from Grok:", scoreText);
-    throw new Error("Image scoring returned an invalid result");
+  // Try to parse JSON response
+  try {
+    const parsed = JSON.parse(scoreText);
+    const total = Number(parsed.total);
+    const subject = Number(parsed.subject);
+    const composition = Number(parsed.composition);
+    const color = Number(parsed.color);
+    const detail = Number(parsed.detail);
+
+    if (isNaN(total) || total < 0 || total > 100) {
+      throw new Error("Invalid total score");
+    }
+
+    return {
+      total: Math.min(100, Math.max(0, total)),
+      breakdown: {
+        subject: Math.min(35, Math.max(0, subject)),
+        composition: Math.min(25, Math.max(0, composition)),
+        color: Math.min(20, Math.max(0, color)),
+        detail: Math.min(20, Math.max(0, detail)),
+      },
+    };
+  } catch {
+    // Fallback: try parsing as a plain integer (backward compat)
+    const score = parseInt(scoreText, 10);
+    if (isNaN(score) || score < 0 || score > 100) {
+      console.error("Invalid score from Grok:", scoreText);
+      throw new Error("Image scoring returned an invalid result");
+    }
+
+    // Approximate breakdown from total
+    return {
+      total: score,
+      breakdown: {
+        subject: Math.round(score * 0.35),
+        composition: Math.round(score * 0.25),
+        color: Math.round(score * 0.20),
+        detail: Math.round(score * 0.20),
+      },
+    };
   }
-
-  return score;
 }

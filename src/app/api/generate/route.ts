@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     const generatedImageUrl = publicUrl.publicUrl;
 
     // Score similarity via Grok Vision API
-    const score = await scoreImages(challenge.reference_image_url, generatedImageUrl, trimmedText);
+    const scoreResult = await scoreImages(challenge.reference_image_url, generatedImageUrl, trimmedText);
 
     // Save the attempt
     const { data: attempt, error: attemptError } = await supabaseAdmin
@@ -143,7 +143,8 @@ export async function POST(req: NextRequest) {
         quality_level: 1,
         credits_spent: creditsNeeded,
         generated_image_url: generatedImageUrl,
-        score,
+        score: scoreResult.total,
+        score_breakdown: scoreResult.breakdown,
         is_validated: true,
       })
       .select()
@@ -171,7 +172,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       attempt,
-      score,
+      score: scoreResult.total,
+      scoreBreakdown: scoreResult.breakdown,
       generatedImageUrl,
       creditsSpent: creditsNeeded,
       remainingBalance: Number(newBalance) || 0,

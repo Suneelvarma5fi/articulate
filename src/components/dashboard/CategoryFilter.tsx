@@ -22,17 +22,17 @@ export function CategoryFilter({
   };
 
   return (
-    <div className="rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5] p-4">
-      <p className="mb-3 text-[11px] tracking-[0.15em] text-[#2a2a2a]/50">
-        CATEGORIES
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <p className="mb-3 font-handjet text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+        Categories
       </p>
       <div className="flex flex-col gap-1">
         <button
           onClick={() => onSelectionChange([])}
-          className={`rounded-lg px-3 py-2 text-left text-xs tracking-wide transition-all ${
+          className={`rounded-lg px-3 py-2 text-left text-xs transition-all ${
             allSelected
-              ? "bg-[#2a2a2a]/10 text-[#2a2a2a]"
-              : "text-[#2a2a2a]/50 hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a]"
+              ? "bg-primary/10 font-medium text-primary"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
           }`}
         >
           All
@@ -44,10 +44,10 @@ export function CategoryFilter({
             <button
               key={category}
               onClick={() => toggleCategory(category)}
-              className={`rounded-lg px-3 py-2 text-left text-xs tracking-wide transition-all ${
+              className={`rounded-lg px-3 py-2 text-left text-xs transition-all ${
                 isSelected
-                  ? "bg-[#2a2a2a]/10 text-[#2a2a2a]"
-                  : "text-[#2a2a2a]/50 hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a]"
+                  ? "bg-primary/10 font-medium text-primary"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               }`}
             >
               {category}

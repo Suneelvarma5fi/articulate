@@ -68,22 +68,22 @@ export function ActivityCalendar({
   })();
 
   return (
-    <div className="rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5] p-4">
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
       {/* Month navigation */}
       <div className="mb-3 flex items-center justify-between">
         <button
           onClick={goBack}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-xs text-[#2a2a2a]/50 transition-colors hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a]"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
         >
           &lsaquo;
         </button>
-        <span className="text-xs tracking-wide text-[#2a2a2a]">
+        <span className="text-xs text-foreground">
           {monthLabel}
         </span>
         <button
           onClick={goForward}
           disabled={!canGoForward}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-xs text-[#2a2a2a]/50 transition-colors hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a] disabled:opacity-20"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-20"
         >
           &rsaquo;
         </button>
@@ -92,7 +92,7 @@ export function ActivityCalendar({
       {/* Day headers */}
       <div className="mb-1 grid grid-cols-7 gap-1">
         {DAY_LABELS.map((label, i) => (
-          <div key={i} className="text-center text-[10px] text-[#2a2a2a]/40">
+          <div key={i} className="text-center text-[10px] text-muted-foreground">
             {label}
           </div>
         ))}
@@ -121,19 +121,19 @@ export function ActivityCalendar({
               <div
                 className={`flex aspect-square items-center justify-center rounded-md text-[11px] transition-all ${
                   isFuture
-                    ? "text-[#2a2a2a]/15"
+                    ? "text-foreground/15"
                     : completed
-                    ? "bg-[#2a2a2a]/10 font-medium text-[#2a2a2a]"
-                    : "text-[#2a2a2a]/50"
-                } ${isToday ? "ring-1 ring-[#2a2a2a]/40" : ""}`}
+                    ? "bg-primary/15 font-medium text-primary"
+                    : "text-muted-foreground"
+                } ${isToday ? "ring-1 ring-primary/40" : ""}`}
               >
                 {cell.day}
               </div>
 
               {/* Tooltip */}
               {isHovered && data && !isFuture && (
-                <div className="absolute -top-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[#2a2a2a]/15 bg-[#E0E0D5] px-2.5 py-1 shadow-lg">
-                  <span className="text-[10px] text-[#2a2a2a]">
+                <div className="absolute -top-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border bg-card px-2.5 py-1 shadow-lg">
+                  <span className="font-mono text-[10px] text-foreground">
                     {completed
                       ? `Best: ${data.bestScore}`
                       : "Not attempted"}

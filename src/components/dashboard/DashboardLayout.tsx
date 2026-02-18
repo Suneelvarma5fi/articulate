@@ -116,10 +116,10 @@ export function DashboardLayout() {
       <div className="mx-auto max-w-6xl">
         <Header creditBalance={creditBalance} />
 
-        {/* ═══ Top: Streak + Challenges + Calendar ═══ */}
+        {/* Top: Streak + Challenges + Calendar */}
         <section className="mb-10">
-          <p className="mb-3 text-[11px] tracking-[0.2em] text-[#2a2a2a]/50">
-            RECENT CHALLENGES
+          <p className="mb-3 font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+            Recent Challenges
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_220px]">
             {/* Left: Streak + 3 challenge cards */}
@@ -132,11 +132,11 @@ export function DashboardLayout() {
                 <RecentChallenges challenges={dashboardData.recentChallenges} />
               ) : (
                 <>
-                  <div className="flex h-44 items-center justify-center rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5]">
-                    <p className="text-xs tracking-wide text-[#2a2a2a]/40">No challenges</p>
+                  <div className="flex h-44 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
+                    <p className="text-xs text-muted-foreground">No challenges</p>
                   </div>
-                  <div className="h-44 rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5] max-sm:hidden" />
-                  <div className="h-44 rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5] max-sm:hidden" />
+                  <div className="h-44 rounded-xl border border-border bg-card shadow-sm max-sm:hidden" />
+                  <div className="h-44 rounded-xl border border-border bg-card shadow-sm max-sm:hidden" />
                 </>
               )}
             </div>
@@ -152,10 +152,10 @@ export function DashboardLayout() {
           </div>
         </section>
 
-        {/* ═══ Bottom: Table + Category sidebar ═══ */}
+        {/* Bottom: Table + Category sidebar */}
         <section>
-          <p className="mb-3 text-[11px] tracking-[0.2em] text-[#2a2a2a]/50">
-            ALL CHALLENGES
+          <p className="mb-3 font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+            All Challenges
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_220px]">
             <ChallengeTable

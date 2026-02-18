@@ -1,3 +1,10 @@
+export interface ScoreBreakdown {
+  subject: number;      // 0-35
+  composition: number;  // 0-25
+  color: number;        // 0-20
+  detail: number;       // 0-20
+}
+
 export type ChallengeStatus = "draft" | "scheduled" | "active" | "archived";
 export type TransactionType = "signup_bonus" | "image_generation" | "purchase";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
@@ -29,6 +36,7 @@ export interface Attempt {
   credits_spent: number;
   generated_image_url: string;
   score: number;
+  score_breakdown: ScoreBreakdown | null;
   is_validated: boolean;
   validation_reason: string | null;
   created_at: string;

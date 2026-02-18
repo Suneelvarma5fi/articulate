@@ -28,10 +28,10 @@ export function RecentChallenges({ challenges }: RecentChallengesProps) {
           <Link
             key={challenge.id}
             href={`/challenge/${challenge.id}`}
-            className={`group relative block h-44 overflow-hidden rounded-xl transition-all duration-200 ${
+            className={`group relative block h-44 overflow-hidden rounded-xl shadow-sm transition-all duration-200 ${
               isToday
-                ? "ring-2 ring-[#2a2a2a]/30"
-                : "ring-1 ring-[#2a2a2a]/10 hover:ring-[#2a2a2a]/25"
+                ? "ring-2 ring-primary/40"
+                : "ring-1 ring-border hover:ring-primary/25"
             }`}
           >
             {/* Full-bleed image */}
@@ -49,7 +49,7 @@ export function RecentChallenges({ challenges }: RecentChallengesProps) {
             {/* Today badge */}
             {isToday && (
               <div className="absolute left-2.5 top-2.5">
-                <span className="rounded-full bg-[#2a2a2a] px-2 py-0.5 text-[9px] tracking-[0.15em] text-[#DDDDD1]">
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[9px] tracking-[0.15em] text-white">
                   TODAY
                 </span>
               </div>
@@ -58,7 +58,7 @@ export function RecentChallenges({ challenges }: RecentChallengesProps) {
             {/* Score badge */}
             {challenge.user_attempted && (
               <div className="absolute right-2.5 top-2.5">
-                <span className="rounded-md bg-black/50 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-sm">
+                <span className="rounded-md bg-black/50 px-2 py-0.5 font-mono text-xs font-bold text-white backdrop-blur-sm">
                   {challenge.user_best_score}
                 </span>
               </div>
@@ -75,7 +75,7 @@ export function RecentChallenges({ challenges }: RecentChallengesProps) {
                     {isToday ? "Today" : new Date(challenge.active_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </p>
                 </div>
-                <span className="shrink-0 text-[10px] text-white/40">
+                <span className="shrink-0 font-mono text-[10px] text-white/40">
                   #{String(challenge.challenge_number).padStart(3, "0")}
                 </span>
               </div>

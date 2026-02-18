@@ -17,16 +17,16 @@ export function Header({ creditBalance }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="mb-10 border-b border-[#2a2a2a]/10 pb-6">
+    <header className="mb-10 border-b border-border pb-6">
       <div className="flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/dashboard" className="text-2xl tracking-wider text-[#2a2a2a]">
+        {/* Logo — Handjet brand anchor */}
+        <Link href="/dashboard" className="font-handjet text-2xl tracking-wider text-foreground">
           ARTICULATE_
         </Link>
 
         {/* Right side: nav + credits + user */}
         <div className="flex items-center gap-6">
-          {/* Desktop nav */}
+          {/* Desktop nav — Geist Sans, small, muted */}
           <nav className="hidden items-center gap-6 sm:flex">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
@@ -36,8 +36,8 @@ export function Header({ creditBalance }: HeaderProps) {
                   href={item.href}
                   className={`text-[11px] tracking-[0.2em] transition-colors ${
                     isActive
-                      ? "text-[#2a2a2a]"
-                      : "text-[#2a2a2a]/50 hover:text-[#2a2a2a]"
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {item.label}
@@ -46,12 +46,12 @@ export function Header({ creditBalance }: HeaderProps) {
             })}
           </nav>
 
-          {/* Credits badge */}
-          <div className="flex items-center gap-1.5 rounded-full border border-[#2a2a2a]/15 px-4 py-1.5">
-            <span className="text-[11px] tracking-[0.15em] text-[#2a2a2a]/50">
+          {/* Credits badge — pill shape, red number */}
+          <div className="flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5">
+            <span className="text-[11px] tracking-[0.15em] text-muted-foreground">
               CREDITS
             </span>
-            <span className="text-sm tracking-wide text-[#2a2a2a]">
+            <span className="font-mono text-sm font-semibold text-primary">
               {creditBalance !== null ? creditBalance : "--"}
             </span>
           </div>
@@ -71,8 +71,8 @@ export function Header({ creditBalance }: HeaderProps) {
               href={item.href}
               className={`text-[11px] tracking-[0.2em] transition-colors ${
                 isActive
-                  ? "text-[#2a2a2a]"
-                  : "text-[#2a2a2a]/50 hover:text-[#2a2a2a]"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {item.label}

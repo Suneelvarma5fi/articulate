@@ -43,7 +43,7 @@ export async function GET(
   // Get user's attempts for this challenge
   const { data: attempts } = await supabaseAdmin
     .from("attempts")
-    .select("id, score, generated_image_url, articulation_text, credits_spent, created_at")
+    .select("id, score, score_breakdown, generated_image_url, articulation_text, credits_spent, created_at")
     .eq("clerk_user_id", userId)
     .eq("challenge_id", challenge.id)
     .order("created_at", { ascending: false });

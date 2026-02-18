@@ -38,38 +38,38 @@ export default function RootLayout({
     <ClerkProvider
       appearance={{
         variables: {
-          colorBackground: "#E0E0D5",
-          colorText: "#2a2a2a",
-          colorTextSecondary: "#6b6b6b",
-          colorPrimary: "#2a2a2a",
-          colorInputBackground: "#D5D5C9",
-          colorInputText: "#2a2a2a",
-          fontFamily: "var(--font-handjet), monospace",
+          colorBackground: "#F5F4F0",
+          colorText: "#1A1A1A",
+          colorTextSecondary: "#6B6B6B",
+          colorPrimary: "#DC2626",
+          colorInputBackground: "#FFFFFF",
+          colorInputText: "#1A1A1A",
+          fontFamily: "var(--font-geist-sans), sans-serif",
           borderRadius: "0.75rem",
         },
         elements: {
-          card: "shadow-none border border-[#2a2a2a]/15 !bg-[#E0E0D5]",
+          card: "shadow-sm border border-black/[0.06] !bg-white",
           headerTitle: "font-handjet tracking-wider",
-          headerSubtitle: "font-handjet tracking-wide",
+          headerSubtitle: "text-[#6B6B6B]",
           formButtonPrimary:
-            "bg-[#2a2a2a] hover:bg-[#2a2a2a]/90 text-[#DDDDD1] font-handjet tracking-wider text-sm rounded-full",
+            "bg-[#DC2626] hover:bg-[#B91C1C] text-white font-medium tracking-wide text-sm rounded-full",
           formFieldInput:
-            "border-[#2a2a2a]/15 bg-[#D5D5C9] font-handjet tracking-wide rounded-lg",
-          formFieldLabel: "font-handjet tracking-wide text-[#2a2a2a]/70",
-          footerActionLink: "text-[#2a2a2a] font-handjet hover:text-[#2a2a2a]/70",
+            "border-black/[0.06] bg-white rounded-lg",
+          formFieldLabel: "text-[#1A1A1A]/70",
+          footerActionLink: "text-[#DC2626] hover:text-[#B91C1C]",
           socialButtonsBlockButton:
-            "border-[#2a2a2a]/15 font-handjet tracking-wide rounded-lg hover:bg-[#D5D5C9]",
-          dividerLine: "bg-[#2a2a2a]/10",
-          dividerText: "font-handjet text-[#2a2a2a]/40",
-          userButtonPopoverCard: "border border-[#2a2a2a]/15 !bg-[#E0E0D5]",
-          userButtonPopoverActionButton: "font-handjet tracking-wide",
+            "border-black/[0.06] rounded-lg hover:bg-[#F5F4F0]",
+          dividerLine: "bg-black/[0.06]",
+          dividerText: "text-[#9B9B9B]",
+          userButtonPopoverCard: "border border-black/[0.06] !bg-white shadow-lg",
+          userButtonPopoverActionButton: "hover:bg-[#F5F4F0]",
           userButtonPopoverFooter: "hidden",
         },
       }}
     >
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${handjet.variable} font-handjet antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${handjet.variable} font-sans antialiased`}
         >
           {children}
         </body>

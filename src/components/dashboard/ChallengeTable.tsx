@@ -32,16 +32,16 @@ function getStatus(challenge: ChallengeRow): {
   textClass: string;
 } {
   if (challenge.is_locked) {
-    return { label: "Locked", dotClass: "bg-[#2a2a2a]/15", textClass: "text-[#2a2a2a]/30" };
+    return { label: "Locked", dotClass: "bg-muted-foreground/30", textClass: "text-muted-foreground/50" };
   }
   if (challenge.user_best_score !== null && challenge.user_best_score >= 0) {
-    return { label: "Completed", dotClass: "bg-[#2a2a2a]", textClass: "text-[#2a2a2a]" };
+    return { label: "Completed", dotClass: "bg-success", textClass: "text-success" };
   }
   const today = new Date().toISOString().split("T")[0];
   if (challenge.active_date === today) {
-    return { label: "Active", dotClass: "bg-[#2a2a2a]/60", textClass: "text-[#2a2a2a]/80" };
+    return { label: "Active", dotClass: "bg-primary", textClass: "text-primary" };
   }
-  return { label: "Open", dotClass: "bg-[#2a2a2a]/40", textClass: "text-[#2a2a2a]/60" };
+  return { label: "Open", dotClass: "bg-muted-foreground/50", textClass: "text-muted-foreground" };
 }
 
 function formatDate(dateStr: string) {
@@ -53,7 +53,7 @@ function formatDate(dateStr: string) {
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <span className={`ml-1 inline-block text-[9px] ${active ? "text-[#2a2a2a]" : "text-[#2a2a2a]/20"}`}>
+    <span className={`ml-1 inline-block text-[9px] ${active ? "text-foreground" : "text-muted-foreground/30"}`}>
       {active ? (dir === "asc" ? "\u25B2" : "\u25BC") : "\u25BC"}
     </span>
   );
@@ -97,17 +97,17 @@ export function ChallengeTable({
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5] p-12 text-center">
-        <p className="text-sm tracking-wide text-[#2a2a2a]/50">Loading...</p>
+      <div className="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
+        <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   if (challenges.length === 0) {
     return (
-      <div className="rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5] p-12 text-center">
-        <p className="text-sm tracking-wide text-[#2a2a2a]/60">No challenges found</p>
-        <p className="mt-1 text-xs tracking-wide text-[#2a2a2a]/40">
+      <div className="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
+        <p className="text-sm text-foreground/60">No challenges found</p>
+        <p className="mt-1 text-xs text-muted-foreground">
           Try a different category or month.
         </p>
       </div>
@@ -115,25 +115,25 @@ export function ChallengeTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#2a2a2a]/10 bg-[#E0E0D5]">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       {/* Table header */}
-      <div className="grid grid-cols-[40px_1fr_140px_80px_56px_88px] items-center border-b border-[#2a2a2a]/10 px-4 py-3 max-sm:hidden">
-        <button onClick={() => toggleSort("challenge_number")} className="flex items-center text-[11px] tracking-wide text-[#2a2a2a]/50 hover:text-[#2a2a2a]">
+      <div className="grid grid-cols-[40px_1fr_140px_80px_56px_88px] items-center border-b border-border px-4 py-3 max-sm:hidden">
+        <button onClick={() => toggleSort("challenge_number")} className="flex items-center text-[11px] text-muted-foreground hover:text-foreground">
           #<SortIcon active={sortKey === "challenge_number"} dir={sortDir} />
         </button>
-        <span className="text-[11px] tracking-wide text-[#2a2a2a]/50">Title</span>
-        <span className="text-[11px] tracking-wide text-[#2a2a2a]/50">Category</span>
-        <button onClick={() => toggleSort("active_date")} className="flex items-center text-[11px] tracking-wide text-[#2a2a2a]/50 hover:text-[#2a2a2a]">
+        <span className="text-[11px] text-muted-foreground">Title</span>
+        <span className="text-[11px] text-muted-foreground">Category</span>
+        <button onClick={() => toggleSort("active_date")} className="flex items-center text-[11px] text-muted-foreground hover:text-foreground">
           Date<SortIcon active={sortKey === "active_date"} dir={sortDir} />
         </button>
-        <button onClick={() => toggleSort("user_best_score")} className="flex items-center text-[11px] tracking-wide text-[#2a2a2a]/50 hover:text-[#2a2a2a]">
+        <button onClick={() => toggleSort("user_best_score")} className="flex items-center text-[11px] text-muted-foreground hover:text-foreground">
           Score<SortIcon active={sortKey === "user_best_score"} dir={sortDir} />
         </button>
-        <span className="text-[11px] tracking-wide text-[#2a2a2a]/50">Status</span>
+        <span className="text-[11px] text-muted-foreground">Status</span>
       </div>
 
       {/* Rows */}
-      <div className="divide-y divide-[#2a2a2a]/5">
+      <div className="divide-y divide-border/50">
         {sorted.map((challenge) => {
           const status = getStatus(challenge);
           const isLocked = challenge.is_locked;
@@ -141,27 +141,27 @@ export function ChallengeTable({
           const row = (
             <div
               className={`grid grid-cols-[40px_1fr_140px_80px_56px_88px] items-center px-4 py-3 text-sm transition-colors max-sm:grid-cols-[40px_1fr_56px] max-sm:gap-2 ${
-                isLocked ? "opacity-30" : "hover:bg-[#2a2a2a]/[0.03]"
+                isLocked ? "opacity-30" : "hover:bg-secondary/50"
               }`}
             >
-              <span className="text-xs text-[#2a2a2a]/50">
+              <span className="font-mono text-xs text-muted-foreground">
                 {challenge.challenge_number}
               </span>
-              <span className="truncate text-sm tracking-wide text-[#2a2a2a]">
+              <span className="truncate text-sm text-foreground">
                 {challenge.title}
               </span>
-              <span className="truncate text-xs tracking-wide text-[#2a2a2a]/50 max-sm:hidden">
+              <span className="truncate text-xs text-muted-foreground max-sm:hidden">
                 {challenge.categories[0] || "\u2014"}
               </span>
-              <span className="text-xs tracking-wide text-[#2a2a2a]/50 max-sm:hidden">
+              <span className="text-xs text-muted-foreground max-sm:hidden">
                 {formatDate(challenge.active_date)}
               </span>
-              <span className={`text-xs max-sm:text-right ${challenge.user_best_score !== null ? "text-[#2a2a2a]" : "text-[#2a2a2a]/20"}`}>
+              <span className={`font-mono text-xs max-sm:text-right ${challenge.user_best_score !== null ? "font-semibold text-primary" : "text-muted-foreground/30"}`}>
                 {challenge.user_best_score !== null ? challenge.user_best_score : "\u2014"}
               </span>
               <div className="flex items-center gap-1.5 max-sm:hidden">
                 <div className={`h-1.5 w-1.5 rounded-full ${status.dotClass}`} />
-                <span className={`text-xs tracking-wide ${status.textClass}`}>{status.label}</span>
+                <span className={`text-xs ${status.textClass}`}>{status.label}</span>
               </div>
             </div>
           );
@@ -180,25 +180,25 @@ export function ChallengeTable({
 
       {/* Pagination footer */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-[#2a2a2a]/10 px-4 py-3">
-          <span className="text-xs tracking-wide text-[#2a2a2a]/50">
+        <div className="flex items-center justify-between border-t border-border px-4 py-3">
+          <span className="text-xs text-muted-foreground">
             {total} challenges
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="rounded-lg px-2 py-1 text-xs text-[#2a2a2a]/50 transition-colors hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a] disabled:opacity-30"
+              className="rounded-lg px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
             >
               &lsaquo; Prev
             </button>
-            <span className="px-2 text-xs text-[#2a2a2a]/50">
+            <span className="px-2 font-mono text-xs text-muted-foreground">
               {page} / {totalPages}
             </span>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="rounded-lg px-2 py-1 text-xs text-[#2a2a2a]/50 transition-colors hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a] disabled:opacity-30"
+              className="rounded-lg px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30"
             >
               Next &rsaquo;
             </button>

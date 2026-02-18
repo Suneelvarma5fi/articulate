@@ -45,6 +45,7 @@ create table attempts (
   credits_spent numeric(4, 1) not null,
   generated_image_url text not null,
   score integer not null check (score >= 0 and score <= 100),
+  score_breakdown jsonb,  -- {subject: 0-35, composition: 0-25, color: 0-20, detail: 0-20}
   is_validated boolean not null default true,
   validation_reason text,
   created_at timestamptz default now() not null

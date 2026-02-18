@@ -11,18 +11,20 @@ export default async function HistoryPage() {
   }
 
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen p-4">
-          <div className="mx-auto max-w-4xl">
-            <div className="terminal-box p-8 text-center">
-              <p className="text-sm text-muted-foreground">Loading...</p>
+    <div className="min-h-screen bg-background">
+      <Suspense
+        fallback={
+          <main className="px-6 py-8 sm:px-10">
+            <div className="mx-auto max-w-4xl">
+              <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              </div>
             </div>
-          </div>
-        </main>
-      }
-    >
-      <HistoryView />
-    </Suspense>
+          </main>
+        }
+      >
+        <HistoryView />
+      </Suspense>
+    </div>
   );
 }
