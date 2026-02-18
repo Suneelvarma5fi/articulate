@@ -42,7 +42,7 @@ export function LandingContent() {
           <div className="flex items-center gap-8">
             <a
               href="#about"
-              className={`hidden text-[11px] tracking-[0.2em] transition-colors sm:inline ${
+              className={`hidden text-xs tracking-[0.2em] transition-colors sm:inline ${
                 scrolled
                   ? "text-[#2a2a2a]/80 hover:text-[#2a2a2a]"
                   : "text-white/60 hover:text-white"
@@ -52,7 +52,7 @@ export function LandingContent() {
             </a>
             <a
               href="#pricing"
-              className={`hidden text-[11px] tracking-[0.2em] transition-colors sm:inline ${
+              className={`hidden text-xs tracking-[0.2em] transition-colors sm:inline ${
                 scrolled
                   ? "text-[#2a2a2a]/80 hover:text-[#2a2a2a]"
                   : "text-white/60 hover:text-white"
@@ -62,7 +62,7 @@ export function LandingContent() {
             </a>
             <Link
               href="/sign-in"
-              className={`rounded-full border px-5 py-2 text-[11px] tracking-[0.15em] transition-all ${
+              className={`rounded-full border px-6 py-2.5 text-xs tracking-[0.15em] transition-all ${
                 scrolled
                   ? "border-[#2a2a2a]/50 text-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-[#DDDDD1]"
                   : "border-white/30 text-white hover:bg-white hover:text-black"
@@ -90,8 +90,8 @@ export function LandingContent() {
           {/* Snake wave text */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6" style={{ marginTop: "-200px" }}>
             <p
-              className="flex flex-wrap justify-center gap-x-[0.35em] text-lg tracking-[0.15em] text-white/80 sm:text-2xl md:text-3xl lg:text-4xl"
-              style={{ textShadow: "0 1px 20px rgba(0,0,0,0.5)" }}
+              className="flex flex-wrap justify-center gap-x-[0.35em] text-2xl tracking-[0.12em] text-white/85 sm:text-3xl md:text-4xl lg:text-5xl"
+              style={{ textShadow: "0 2px 30px rgba(0,0,0,0.5)" }}
             >
               {"If you say the right words in right order, you can change your world".split(" ").map((word, i) => (
                 <span
@@ -121,31 +121,31 @@ export function LandingContent() {
 
       {/* ─── About ─── */}
       <section id="about">
-        <div className="mx-auto max-w-6xl px-6 py-24 sm:px-10 sm:py-32">
-          {/* Jordan Peterson Quote */}
-          <div className="mx-auto max-w-3xl text-center">
-            <blockquote className="text-3xl leading-relaxed tracking-wide sm:text-5xl">
+        <div className="mx-auto max-w-6xl px-6 py-28 sm:px-10 sm:py-36">
+          {/* Jordan Peterson Quote — the emotional hook */}
+          <div className="mx-auto max-w-4xl text-center">
+            <blockquote className="text-4xl leading-snug tracking-wide sm:text-5xl md:text-6xl lg:text-7xl">
               &ldquo;Be Articulate. That&rsquo;s the most dangerous thing you
               can possibly be.&rdquo;
             </blockquote>
-            <p className="mt-8 text-[11px] tracking-[0.25em] text-[#2a2a2a]/50">
+            <p className="mt-10 text-xs tracking-[0.3em] text-[#2a2a2a]/40">
               &mdash; JORDAN PETERSON
             </p>
           </div>
 
           {/* What is Articulate — two column */}
-          <div className="mt-28 grid gap-12 sm:grid-cols-2 sm:gap-16">
+          <div className="mt-32 grid gap-12 sm:grid-cols-2 sm:gap-20">
             <div>
-              <p className="text-[11px] tracking-[0.3em] text-[#2a2a2a]/50">
+              <p className="text-xs tracking-[0.3em] text-[#2a2a2a]/40">
                 WHAT IS ARTICULATE
               </p>
-              <h2 className="mt-4 text-2xl leading-tight tracking-wide sm:text-4xl">
+              <h2 className="mt-5 text-3xl leading-tight tracking-wide sm:text-4xl md:text-5xl">
                 Turn what you see
                 <br />
                 into what you say.
               </h2>
             </div>
-            <div className="space-y-5 text-sm leading-relaxed tracking-wide text-[#2a2a2a]/70">
+            <div className="space-y-6 text-base leading-relaxed tracking-wide text-[#2a2a2a]/65 sm:text-lg">
               <p>
                 Every day, a new image appears. Your challenge is simple:
                 describe it so well that an AI can recreate it from your words
@@ -165,7 +165,7 @@ export function LandingContent() {
           </div>
 
           {/* How it works — 3 steps */}
-          <div className="mt-28 grid gap-8 sm:grid-cols-3">
+          <div className="mt-32 grid gap-10 sm:grid-cols-3">
             {[
               {
                 num: "01",
@@ -187,11 +187,11 @@ export function LandingContent() {
                 key={step.num}
                 className="border-t border-[#2a2a2a]/15 pt-8"
               >
-                <span className="text-5xl text-[#2a2a2a]/[0.12]">
+                <span className="text-6xl text-[#2a2a2a]/[0.08] sm:text-7xl">
                   {step.num}
                 </span>
-                <h3 className="mt-4 text-xl tracking-wide">{step.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed tracking-wide text-[#2a2a2a]/60">
+                <h3 className="mt-4 text-2xl tracking-wide sm:text-3xl">{step.title}</h3>
+                <p className="mt-4 text-base leading-relaxed tracking-wide text-[#2a2a2a]/55 sm:text-lg">
                   {step.desc}
                 </p>
               </div>
@@ -199,15 +199,15 @@ export function LandingContent() {
           </div>
 
           {/* Categories */}
-          <div className="mt-28">
-            <p className="mb-6 text-[11px] tracking-[0.3em] text-[#2a2a2a]/50">
+          <div className="mt-32">
+            <p className="mb-8 text-xs tracking-[0.3em] text-[#2a2a2a]/40">
               {CATEGORIES.length} CATEGORIES
             </p>
             <div className="flex flex-wrap gap-3">
               {CATEGORIES.map((cat) => (
                 <span
                   key={cat}
-                  className="rounded-full border border-[#2a2a2a]/15 px-4 py-1.5 text-xs tracking-wide text-[#2a2a2a]/60"
+                  className="rounded-full border border-[#2a2a2a]/15 px-5 py-2 text-sm tracking-wide text-[#2a2a2a]/55"
                 >
                   {cat}
                 </span>
@@ -219,21 +219,21 @@ export function LandingContent() {
 
       {/* ─── Pricing ─── */}
       <section id="pricing">
-        <div className="mx-auto max-w-6xl px-6 py-24 sm:px-10 sm:py-32">
-          <div className="mb-16 text-center">
-            <p className="text-[11px] tracking-[0.3em] text-[#2a2a2a]/50">
+        <div className="mx-auto max-w-6xl px-6 py-28 sm:px-10 sm:py-36">
+          <div className="mb-20 text-center">
+            <p className="text-xs tracking-[0.3em] text-[#2a2a2a]/40">
               PRICING
             </p>
-            <h2 className="mt-4 text-2xl tracking-wide sm:text-4xl">
+            <h2 className="mt-5 text-3xl tracking-wide sm:text-4xl md:text-5xl">
               Simple credits. No subscriptions.
             </h2>
-            <p className="mt-4 text-sm tracking-wide text-[#2a2a2a]/60">
+            <p className="mx-auto mt-6 max-w-lg text-base tracking-wide text-[#2a2a2a]/55 sm:text-lg">
               Every credit is one attempt to describe, generate, and score.
               Start with 5 free credits &mdash; no card needed.
             </p>
           </div>
 
-          <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-3">
+          <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-3">
             {CREDIT_PACKAGES.map((pkg, i) => {
               const isHighlighted = i === 1;
               const benefits = [
@@ -259,35 +259,35 @@ export function LandingContent() {
               return (
                 <div
                   key={i}
-                  className={`relative rounded-2xl border p-8 transition-colors ${
+                  className={`relative rounded-2xl border p-8 transition-colors sm:p-10 ${
                     isHighlighted
                       ? "border-[#2a2a2a]/25 bg-[#2a2a2a]/[0.06]"
                       : "border-[#2a2a2a]/15 hover:border-[#2a2a2a]/25"
                   }`}
                 >
                   {benefits.saving && (
-                    <span className="absolute right-4 top-4 rounded-full bg-[#2a2a2a]/10 px-3 py-1 text-[10px] tracking-[0.15em] text-[#2a2a2a]/70">
+                    <span className="absolute right-4 top-4 rounded-full bg-[#2a2a2a]/10 px-3 py-1.5 text-[11px] tracking-[0.15em] text-[#2a2a2a]/60">
                       {benefits.saving}
                     </span>
                   )}
-                  <p className="text-xs tracking-[0.2em] text-[#2a2a2a]/50">
+                  <p className="text-xs tracking-[0.2em] text-[#2a2a2a]/40">
                     {benefits.headline.toUpperCase()}
                   </p>
-                  <p className="mt-3 text-4xl tracking-wide">
+                  <p className="mt-4 text-5xl tracking-wide">
                     {pkg.priceLabel}
                   </p>
-                  <p className="mt-2 text-sm tracking-wide text-[#2a2a2a]/70">
+                  <p className="mt-3 text-base tracking-wide text-[#2a2a2a]/65">
                     {benefits.attempts} attempts
                   </p>
-                  <p className="mt-4 text-xs leading-relaxed tracking-wide text-[#2a2a2a]/50">
+                  <p className="mt-5 text-sm leading-relaxed tracking-wide text-[#2a2a2a]/45">
                     {benefits.desc}
                   </p>
                   <Link
                     href="/sign-up"
-                    className={`mt-8 block w-full rounded-full py-3 text-center text-[11px] tracking-[0.15em] transition-all ${
+                    className={`mt-8 block w-full rounded-full py-3.5 text-center text-xs tracking-[0.15em] transition-all ${
                       isHighlighted
                         ? "bg-[#2a2a2a] text-[#DDDDD1] hover:bg-[#2a2a2a]/90"
-                        : "border border-[#2a2a2a]/20 text-[#2a2a2a]/70 hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a]"
+                        : "border border-[#2a2a2a]/20 text-[#2a2a2a]/60 hover:bg-[#2a2a2a]/5 hover:text-[#2a2a2a]"
                     }`}
                   >
                     GET STARTED
@@ -301,19 +301,19 @@ export function LandingContent() {
 
       {/* ─── Final CTA ─── */}
       <section>
-        <div className="mx-auto max-w-6xl px-6 py-24 text-center sm:px-10 sm:py-32">
-          <h2 className="text-3xl tracking-wide sm:text-5xl">
+        <div className="mx-auto max-w-6xl px-6 py-28 text-center sm:px-10 sm:py-36">
+          <h2 className="text-4xl tracking-wide sm:text-5xl md:text-6xl">
             Ready to see how
             <br />
             articulate you are?
           </h2>
           <Link
             href="/sign-up"
-            className="mt-10 inline-block rounded-full bg-[#2a2a2a] px-10 py-3.5 text-sm tracking-wider text-[#DDDDD1] transition-all hover:bg-[#2a2a2a]/90"
+            className="mt-12 inline-block rounded-full bg-[#2a2a2a] px-12 py-4 text-base tracking-wider text-[#DDDDD1] transition-all hover:bg-[#2a2a2a]/90"
           >
             Start for free
           </Link>
-          <p className="mt-4 text-xs tracking-wide text-[#2a2a2a]/45">
+          <p className="mt-5 text-sm tracking-wide text-[#2a2a2a]/40">
             5 free credits. No card required.
           </p>
         </div>
@@ -328,19 +328,19 @@ export function LandingContent() {
           <div className="flex items-center gap-6">
             <Link
               href="/terms"
-              className="text-[11px] tracking-wide text-[#2a2a2a]/40 transition-colors hover:text-[#2a2a2a]/70"
+              className="text-xs tracking-wide text-[#2a2a2a]/40 transition-colors hover:text-[#2a2a2a]/70"
             >
               Terms
             </Link>
             <Link
               href="/privacy"
-              className="text-[11px] tracking-wide text-[#2a2a2a]/40 transition-colors hover:text-[#2a2a2a]/70"
+              className="text-xs tracking-wide text-[#2a2a2a]/40 transition-colors hover:text-[#2a2a2a]/70"
             >
               Privacy
             </Link>
             <Link
               href="/refund"
-              className="text-[11px] tracking-wide text-[#2a2a2a]/40 transition-colors hover:text-[#2a2a2a]/70"
+              className="text-xs tracking-wide text-[#2a2a2a]/40 transition-colors hover:text-[#2a2a2a]/70"
             >
               Refunds
             </Link>

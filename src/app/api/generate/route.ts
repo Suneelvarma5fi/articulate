@@ -105,9 +105,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Generate image via Gemini API (returns Buffer directly)
-    console.log("[generate] Step 1: Calling Gemini...");
     const imageBuffer = await generateImage(trimmedText);
-    console.log("[generate] Step 1 done, buffer size:", imageBuffer.length);
 
     const attemptId = crypto.randomUUID();
     const storagePath = `${userId}/${attemptId}.png`;
@@ -123,8 +121,6 @@ export async function POST(req: NextRequest) {
       console.error("Image upload error:", uploadError);
       throw new Error("Failed to upload generated image");
     }
-    console.log("[generate] Step 2: Upload done");
-
     const { data: publicUrl } = supabaseAdmin.storage
       .from("generated-images")
       .getPublicUrl(storagePath);
@@ -132,12 +128,9 @@ export async function POST(req: NextRequest) {
     const generatedImageUrl = publicUrl.publicUrl;
 
     // Score similarity via Grok Vision API
-    console.log("[generate] Step 3: Scoring...");
     const scoreResult = await scoreImages(challenge.reference_image_url, generatedImageUrl, trimmedText);
-    console.log("[generate] Step 3 done, score:", scoreResult.total);
 
     // Save the attempt
-    console.log("[generate] Step 4: Saving attempt...");
     const { data: attempt, error: attemptError } = await supabaseAdmin
       .from("attempts")
       .insert({
