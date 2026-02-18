@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
       created_at,
       articulation_text,
       generated_image_url,
+      challenge_id,
       challenges:challenge_id (
         id,
         title,
@@ -36,16 +37,25 @@ export async function GET(req: NextRequest) {
     .eq("clerk_user_id", userId)
     .order("created_at", { ascending: true });
 
-  const { data: allAttempts, error } = await query;
+  const [attemptsResult, userResult, balanceResult] = await Promise.all([
+    query,
+    supabaseAdmin
+      .from("users")
+      .select("display_name, bio, interests, is_public")
+      .eq("clerk_user_id", userId)
+      .single(),
+    supabaseAdmin.rpc("get_credit_balance", { user_id: userId }),
+  ]);
 
-  if (error) {
+  if (attemptsResult.error) {
     return NextResponse.json(
       { error: "Failed to fetch profile data" },
       { status: 500 }
     );
   }
 
-  const attempts = allAttempts || [];
+  const attempts = attemptsResult.data || [];
+  const userProfile = userResult.data;
 
   // Filter by category if provided
   const filtered = category
@@ -99,7 +109,7 @@ export async function GET(req: NextRequest) {
       avgScore: Math.round(total / count),
     }));
 
-  // Category breakdown: how many attempts + avg score per category
+  // Category breakdown
   const categoryStats = new Map<
     string,
     { attempts: number; totalScore: number }
@@ -132,6 +142,25 @@ export async function GET(req: NextRequest) {
     })
   );
 
+  // Heatmap data: group by date, count attempts and best score
+  const heatmapMap = new Map<string, { attemptCount: number; bestScore: number | null }>();
+  for (const attempt of attempts) {
+    const date = attempt.created_at.split("T")[0];
+    const existing = heatmapMap.get(date);
+    if (existing) {
+      existing.attemptCount += 1;
+      if (existing.bestScore === null || attempt.score > existing.bestScore) {
+        existing.bestScore = attempt.score;
+      }
+    } else {
+      heatmapMap.set(date, { attemptCount: 1, bestScore: attempt.score });
+    }
+  }
+  const heatmapData = Array.from(heatmapMap.entries()).map(([date, stats]) => ({
+    date,
+    ...stats,
+  }));
+
   // All attempts (for history table) — most recent first
   const recentAttempts = [...filtered]
     .reverse()
@@ -158,11 +187,6 @@ export async function GET(req: NextRequest) {
       };
     });
 
-  // Get credit balance
-  const { data: balanceData } = await supabaseAdmin.rpc("get_credit_balance", {
-    user_id: userId,
-  });
-
   return NextResponse.json({
     kpis: {
       totalAttempts,
@@ -170,12 +194,52 @@ export async function GET(req: NextRequest) {
       bestScore,
       totalCreditsSpent,
       challengesAttempted,
-      creditBalance: Number(balanceData) || 0,
+      creditBalance: Number(balanceResult.data) || 0,
     },
     scoreTrend,
     categoryBreakdown,
     recentAttempts,
+    heatmapData,
     categories: [...CATEGORIES],
     activeFilter: category,
+    profile: {
+      displayName: userProfile?.display_name || null,
+      bio: userProfile?.bio || null,
+      interests: userProfile?.interests || [],
+      isPublic: userProfile?.is_public || false,
+    },
   });
+}
+
+export async function PATCH(req: NextRequest) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const { displayName, bio, interests, isPublic } = body;
+
+  // Validate
+  if (bio && typeof bio === "string" && bio.length > 200) {
+    return NextResponse.json({ error: "Bio must be 200 characters or less" }, { status: 400 });
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (displayName !== undefined) updates.display_name = typeof displayName === "string" ? displayName.slice(0, 50) : null;
+  if (bio !== undefined) updates.bio = typeof bio === "string" ? bio.slice(0, 200) : null;
+  if (interests !== undefined) updates.interests = Array.isArray(interests) ? interests.slice(0, 10) : [];
+  if (isPublic !== undefined) updates.is_public = Boolean(isPublic);
+
+  const { error } = await supabaseAdmin
+    .from("users")
+    .update(updates)
+    .eq("clerk_user_id", userId);
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

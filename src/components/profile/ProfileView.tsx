@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { ScoreChart } from "./ScoreChart";
+import { ActivityHeatmap } from "./ActivityHeatmap";
 
 const PAGE_SIZE = 20;
 
@@ -23,6 +24,12 @@ interface ScoreTrendPoint {
   avgScore: number;
 }
 
+interface HeatmapDay {
+  date: string;
+  attemptCount: number;
+  bestScore: number | null;
+}
+
 interface RecentAttempt {
   id: string;
   score: number;
@@ -37,6 +44,13 @@ interface RecentAttempt {
   challenge_reference_url: string;
 }
 
+interface UserProfile {
+  displayName: string | null;
+  bio: string | null;
+  interests: string[];
+  isPublic: boolean;
+}
+
 interface ProfileData {
   kpis: KPIs;
   scoreTrend: ScoreTrendPoint[];
@@ -46,8 +60,10 @@ interface ProfileData {
     avgScore: number;
   }>;
   recentAttempts: RecentAttempt[];
+  heatmapData: HeatmapDay[];
   categories: string[];
   activeFilter: string | null;
+  profile: UserProfile;
 }
 
 export function ProfileView() {
@@ -60,6 +76,14 @@ export function ProfileView() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Bio editor state
+  const [editingBio, setEditingBio] = useState(false);
+  const [draftDisplayName, setDraftDisplayName] = useState("");
+  const [draftBio, setDraftBio] = useState("");
+  const [draftIsPublic, setDraftIsPublic] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   const fetchProfile = useCallback(async (category?: string | null) => {
     setLoading(true);
     try {
@@ -69,6 +93,12 @@ export function ProfileView() {
       if (res.ok) {
         const data = await res.json();
         setProfileData(data);
+        // Initialize draft values from profile
+        if (data.profile) {
+          setDraftDisplayName(data.profile.displayName || "");
+          setDraftBio(data.profile.bio || "");
+          setDraftIsPublic(data.profile.isPublic || false);
+        }
       }
     } catch {
       // silently fail
@@ -92,6 +122,37 @@ export function ProfileView() {
     }
     setUploadingImage(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: draftDisplayName || null,
+          bio: draftBio || null,
+          isPublic: draftIsPublic,
+        }),
+      });
+      if (res.ok) {
+        setEditingBio(false);
+        fetchProfile(selectedCategory);
+      }
+    } catch {
+      // silently fail
+    }
+    setSavingProfile(false);
+  };
+
+  const handleCopyShareLink = () => {
+    if (!user) return;
+    const url = `${window.location.origin}/profile/${user.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
   };
 
   const kpis = profileData?.kpis;
@@ -149,8 +210,13 @@ export function ProfileView() {
               </div>
             </button>
             <p className="text-center text-sm font-medium text-foreground">
-              {user?.firstName || user?.username || "User"}
+              {profileData?.profile?.displayName || user?.firstName || user?.username || "User"}
             </p>
+            {profileData?.profile?.bio && (
+              <p className="mt-1 text-center text-[11px] text-muted-foreground">
+                {profileData.profile.bio}
+              </p>
+            )}
             <p className="mt-0.5 text-center text-[11px] text-muted-foreground">
               {user?.primaryEmailAddress?.emailAddress}
             </p>
@@ -163,12 +229,30 @@ export function ProfileView() {
                   })
                 : "--"}
             </p>
-            <Link
-              href="/submit"
-              className="btn-secondary mt-4 w-full py-1.5 text-[11px]"
-            >
-              Submit Challenge
-            </Link>
+
+            {/* Profile actions */}
+            <div className="mt-3 flex w-full flex-col gap-1.5">
+              <button
+                onClick={() => setEditingBio(!editingBio)}
+                className="btn-ghost w-full py-1.5 text-[11px]"
+              >
+                {editingBio ? "Cancel" : "Edit Profile"}
+              </button>
+              {profileData?.profile?.isPublic && (
+                <button
+                  onClick={handleCopyShareLink}
+                  className="btn-ghost w-full py-1.5 text-[11px]"
+                >
+                  {copiedLink ? "Copied!" : "Share Profile"}
+                </button>
+              )}
+              <Link
+                href="/submit"
+                className="btn-secondary w-full py-1.5 text-center text-[11px]"
+              >
+                Submit Challenge
+              </Link>
+            </div>
           </div>
 
           {/* KPIs */}
@@ -230,6 +314,69 @@ export function ProfileView() {
               <ScoreChart data={profileData?.scoreTrend ?? []} />
             </div>
           </div>
+        </div>
+
+        {/* Bio editor panel */}
+        {editingBio && (
+          <div className="card mb-6 p-5">
+            <p className="mb-3 text-xs font-medium text-muted-foreground">
+              Edit Profile
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  value={draftDisplayName}
+                  onChange={(e) => setDraftDisplayName(e.target.value)}
+                  maxLength={50}
+                  placeholder="Your display name"
+                  className="input-clean py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">
+                  Bio <span className="text-muted-foreground/50">({draftBio.length}/200)</span>
+                </label>
+                <textarea
+                  value={draftBio}
+                  onChange={(e) => setDraftBio(e.target.value)}
+                  maxLength={200}
+                  rows={3}
+                  placeholder="A short bio about yourself..."
+                  className="input-clean py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={draftIsPublic}
+                  onChange={(e) => setDraftIsPublic(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-border accent-primary"
+                />
+                Public profile (visible to anyone with the link)
+              </label>
+              <button
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                className="btn-primary px-6 py-1.5 text-xs"
+              >
+                {savingProfile ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Activity heatmap */}
+        <div className="card mb-6 overflow-x-auto p-5">
+          <p className="mb-3 text-xs font-medium text-muted-foreground">
+            Activity
+          </p>
+          <ActivityHeatmap data={profileData?.heatmapData ?? []} />
         </div>
 
         {/* Category filter bar */}
@@ -332,7 +479,7 @@ export function ProfileView() {
                           <span
                             className={`font-mono text-lg font-bold ${
                               attempt.score >= 80
-                                ? "text-terminal-green"
+                                ? "text-success"
                                 : attempt.score >= 50
                                 ? "text-primary"
                                 : "text-foreground"
@@ -347,7 +494,7 @@ export function ProfileView() {
 
                         {/* Expand indicator */}
                         <span className="shrink-0 text-xs text-muted-foreground">
-                          {isExpanded ? "−" : "+"}
+                          {isExpanded ? "\u2212" : "+"}
                         </span>
                       </button>
 

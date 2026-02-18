@@ -127,6 +127,8 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
 
   const { wpm, wordCount, charCount } = useTypingStats(articulationText);
 
+  const [leaderboard, setLeaderboard] = useState<{ username: string; score: number } | null>(null);
+
   const isLoading = flowState === "loading";
   const isActive =
     flowState === "input" || flowState === "loading" || flowState === "results";
@@ -182,6 +184,17 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Fetch leaderboard
+  useEffect(() => {
+    if (!challengeId) return;
+    fetch(`/api/challenges/${challengeId}/leaderboard`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.topScorer) setLeaderboard(data.topScorer);
+      })
+      .catch(() => {});
+  }, [challengeId, pastAttempts.length]);
 
   useEffect(() => {
     if (searchParams.get("purchase") === "success") {
@@ -450,15 +463,22 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
                   {challenge.categories?.[0]}
                 </span>
               </div>
-              {bestScore !== null && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-white/30">BEST</span>
-                  <span className="font-mono text-lg font-bold text-primary">
-                    {bestScore}
+              <div className="flex items-center gap-4">
+                {leaderboard && (
+                  <span className="text-[11px] text-white/30">
+                    Top: <span className="font-mono text-white/50">{leaderboard.score}</span> by <span className="text-white/50">@{leaderboard.username}</span>
                   </span>
-                  <span className="font-mono text-xs text-white/20">/100</span>
-                </div>
-              )}
+                )}
+                {bestScore !== null && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-white/30">BEST</span>
+                    <span className="font-mono text-lg font-bold text-primary">
+                      {bestScore}
+                    </span>
+                    <span className="font-mono text-xs text-white/20">/100</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid min-h-[70vh] grid-cols-1 gap-4 lg:grid-cols-2">

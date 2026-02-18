@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { StreakCounter } from "./StreakCounter";
 import { RecentChallenges } from "./RecentChallenges";
@@ -26,6 +27,8 @@ interface DashboardData {
   >;
   calendarMonth: string;
   categories: string[];
+  solvedCount: number;
+  totalCount: number;
 }
 
 interface ChallengeListItem {
@@ -40,10 +43,12 @@ interface ChallengeListItem {
 }
 
 export function DashboardLayout() {
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [challenges, setChallenges] = useState<ChallengeListItem[]>([]);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -52,6 +57,7 @@ export function DashboardLayout() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalChallenges, setTotalChallenges] = useState(0);
+  const [pickingOne, setPickingOne] = useState(false);
 
   const fetchDashboard = useCallback(async (month: string) => {
     try {
@@ -65,11 +71,12 @@ export function DashboardLayout() {
     }
   }, []);
 
-  const fetchChallenges = useCallback(async (month: string, pageNum: number, category?: string) => {
+  const fetchChallenges = useCallback(async (month: string, pageNum: number, category?: string, searchTerm?: string) => {
     setLoadingChallenges(true);
     try {
       const params = new URLSearchParams({ month, page: String(pageNum), limit: "10" });
       if (category) params.set("category", category);
+      if (searchTerm) params.set("search", searchTerm);
       const res = await fetch(`/api/challenges/list?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -96,13 +103,13 @@ export function DashboardLayout() {
 
   useEffect(() => {
     const category = selectedCategories.length === 1 ? selectedCategories[0] : undefined;
-    fetchChallenges(calendarMonth, page, category);
-  }, [calendarMonth, page, selectedCategories, fetchChallenges]);
+    fetchChallenges(calendarMonth, page, category, search || undefined);
+  }, [calendarMonth, page, selectedCategories, search, fetchChallenges]);
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [calendarMonth, selectedCategories]);
+  }, [calendarMonth, selectedCategories, search]);
 
   const filteredChallenges =
     selectedCategories.length <= 1
@@ -110,6 +117,29 @@ export function DashboardLayout() {
       : challenges.filter((c) =>
           c.categories.some((cat) => selectedCategories.includes(cat))
         );
+
+  const handlePickOne = async () => {
+    setPickingOne(true);
+    try {
+      // Fetch all challenges for this month (no pagination)
+      const params = new URLSearchParams({ month: calendarMonth, page: "1", limit: "50" });
+      const res = await fetch(`/api/challenges/list?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        const unfinished = (data.challenges as ChallengeListItem[]).filter(
+          (c) => !c.is_locked && c.user_best_score === null
+        );
+        if (unfinished.length > 0) {
+          const random = unfinished[Math.floor(Math.random() * unfinished.length)];
+          router.push(`/challenge/${random.id}`);
+          return;
+        }
+      }
+    } catch {
+      // fall through
+    }
+    setPickingOne(false);
+  };
 
   return (
     <main className="px-6 py-8 sm:px-10">
@@ -154,9 +184,57 @@ export function DashboardLayout() {
 
         {/* Bottom: Table + Category sidebar */}
         <section>
-          <p className="mb-3 font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            All Challenges
-          </p>
+          {/* Section header with counter, search, and pick-one */}
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <p className="font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              All Challenges
+            </p>
+
+            {/* X / Y solved counter */}
+            {dashboardData && (
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                {dashboardData.solvedCount} / {dashboardData.totalCount}
+              </span>
+            )}
+
+            <div className="flex-1" />
+
+            {/* Search */}
+            <div className="relative">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search challenges..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-7 w-44 rounded-lg border border-border bg-card pl-7 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20"
+              />
+            </div>
+
+            {/* Pick one for me */}
+            <button
+              onClick={handlePickOne}
+              disabled={pickingOne}
+              className="h-7 rounded-lg border border-border bg-card px-3 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40"
+            >
+              {pickingOne ? "Picking..." : "Pick one for me"}
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_220px]">
             <ChallengeTable
               challenges={filteredChallenges}

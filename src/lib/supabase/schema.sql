@@ -11,6 +11,10 @@ create extension if not exists "uuid-ossp";
 -- ============================================
 create table users (
   clerk_user_id text primary key,
+  display_name text,
+  bio text,
+  interests text[] default '{}',
+  is_public boolean default false,
   created_at timestamptz default now() not null
 );
 

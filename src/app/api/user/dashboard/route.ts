@@ -192,6 +192,22 @@ export async function GET(req: NextRequest) {
     averageScore = Math.round(total / streakResult.data.length);
   }
 
+  // Solved count: unique challenges the user has attempted
+  const solvedChallengeIds = new Set<string>();
+  if (streakResult.data) {
+    for (const a of streakResult.data) {
+      solvedChallengeIds.add(a.challenge_id);
+    }
+  }
+  const solvedCount = solvedChallengeIds.size;
+
+  // Total count: all available challenges (active_date <= today)
+  const { count: totalCount } = await supabaseAdmin
+    .from("challenges")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["active", "scheduled", "archived"])
+    .lte("active_date", today);
+
   return NextResponse.json({
     streak,
     averageScore,
@@ -199,5 +215,7 @@ export async function GET(req: NextRequest) {
     calendarData,
     calendarMonth,
     categories: [...CATEGORIES],
+    solvedCount,
+    totalCount: totalCount || 0,
   });
 }

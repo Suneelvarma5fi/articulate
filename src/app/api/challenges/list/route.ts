@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const monthParam = searchParams.get("month"); // YYYY-MM
   const category = searchParams.get("category"); // single category filter
+  const search = searchParams.get("search")?.trim() || "";
   const today = new Date().toISOString().split("T")[0];
 
   // Default to current month
@@ -39,6 +40,10 @@ export async function GET(req: NextRequest) {
 
   if (category) {
     query = query.contains("categories", [category]);
+  }
+
+  if (search) {
+    query = query.ilike("title", `%${search}%`);
   }
 
   const { data: challenges, error } = await query;
