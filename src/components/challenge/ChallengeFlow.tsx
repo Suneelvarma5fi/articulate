@@ -6,10 +6,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Challenge, CREDITS_PER_GENERATION, ScoreBreakdown } from "@/types/database";
 import { Toast } from "@/components/ui/Toast";
-import { ScoreCounter } from "@/components/animations/ScoreCounter";
 import { PurchaseModal } from "./PurchaseModal";
 import { InlineLoading } from "./InlineLoading";
+import { ScoreBubbles } from "./ScoreBubbles";
 import { UserButton } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
 
 type FlowState = "input" | "loading" | "results" | "error" | "no-challenge";
 
@@ -31,7 +32,11 @@ interface PastAttempt {
   created_at: string;
 }
 
-type LeftTab = "reference" | number;
+interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  score: number;
+}
 
 interface ChallengeFlowProps {
   challengeId?: string;
@@ -77,32 +82,101 @@ function useTypingStats(text: string) {
   return { wpm, wordCount, charCount };
 }
 
-function BreakdownBar({ label, score, max }: { label: string; score: number; max: number }) {
-  const percent = Math.min((score / max) * 100, 100);
-  const barColor = percent >= 80 ? "bg-green-400" : percent >= 50 ? "bg-primary" : "bg-white/30";
+function getScoreLabel(score: number) {
+  if (score >= 80) return { text: "Exceptional", className: "text-green-400" };
+  if (score >= 50) return { text: "Solid attempt", className: "text-muted-foreground" };
+  return { text: "Keep practicing", className: "text-muted-foreground" };
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="w-24 text-right text-[11px] text-white/40">{label}</span>
-      <div className="flex-1">
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div
-            className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor}`}
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-      </div>
-      <span className="w-12 font-mono text-[11px] text-white/50">
-        {score}/{max}
-      </span>
-    </div>
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1 text-[11px] text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+      title="Copy text"
+    >
+      {copied ? (
+        <>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Copied
+        </>
+      ) : (
+        <>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copy
+        </>
+      )}
+    </button>
   );
 }
 
-function getScoreLabel(score: number) {
-  if (score >= 80) return { text: "Exceptional", className: "text-green-400" };
-  if (score >= 50) return { text: "Solid attempt", className: "text-white/60" };
-  return { text: "Keep practicing", className: "text-white/40" };
+function AttemptCard({
+  attempt,
+  challenge,
+  index,
+  total,
+}: {
+  attempt: PastAttempt;
+  challenge: Challenge;
+  index: number;
+  total: number;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* 3-column: ref image | generated image | score bubbles */}
+      <div className="grid grid-cols-3 gap-0">
+        {/* Reference image */}
+        <div className="relative aspect-square border-r border-border p-2">
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
+            <Image
+              src={challenge.reference_image_url}
+              alt="Reference"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 33vw, 20vw"
+            />
+          </div>
+          <span className="absolute left-3 top-3 rounded bg-black/60 px-1.5 py-0.5 text-[9px] text-white/60">
+            REF
+          </span>
+        </div>
+        {/* Generated image */}
+        <div className="relative aspect-square border-r border-border p-2">
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
+            <Image
+              src={attempt.generated_image_url}
+              alt={`Attempt #${total - index}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 33vw, 20vw"
+            />
+          </div>
+          <span className="absolute left-3 top-3 rounded bg-black/60 px-1.5 py-0.5 text-[9px] text-white/60">
+            #{total - index}
+          </span>
+        </div>
+        {/* Score bubbles */}
+        <div className="flex items-center justify-center p-3">
+          <ScoreBubbles total={attempt.score} breakdown={attempt.score_breakdown} />
+        </div>
+      </div>
+      {/* Articulation text + copy */}
+      <div className="flex items-start justify-between gap-3 border-t border-border px-4 py-3">
+        <p className="min-w-0 flex-1 text-sm leading-relaxed text-muted-foreground break-words">
+          {attempt.articulation_text}
+        </p>
+        <CopyButton text={attempt.articulation_text} />
+      </div>
+    </div>
+  );
 }
 
 export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
@@ -120,23 +194,21 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
     type: "success" | "error" | "info";
   } | null>(null);
   const [pastAttempts, setPastAttempts] = useState<PastAttempt[]>([]);
-  const [activeTab, setActiveTab] = useState<LeftTab>("reference");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [totalSubmissions, setTotalSubmissions] = useState(0);
 
-  // Store draft text separately so we can show past attempt text on tab switch
-  const draftTextRef = useRef("");
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [themeMounted, setThemeMounted] = useState(false);
+
+  useEffect(() => { setThemeMounted(true); }, []);
 
   const { wpm, wordCount, charCount } = useTypingStats(articulationText);
-
-  const [leaderboard, setLeaderboard] = useState<{ username: string; score: number } | null>(null);
 
   const isLoading = flowState === "loading";
   const isActive =
     flowState === "input" || flowState === "loading" || flowState === "results";
 
-  // Viewing a past attempt tab (not reference, not actively editing)
-  const isViewingPastAttempt = typeof activeTab === "number";
-
-  // Best score across all attempts
   const bestScore = pastAttempts.length > 0
     ? Math.max(...pastAttempts.map((a) => a.score))
     : null;
@@ -145,7 +217,6 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
     const prefill = searchParams.get("prefill");
     if (prefill) {
       setArticulationText(prefill);
-      draftTextRef.current = prefill;
       window.history.replaceState({}, "", pathname);
     }
   }, [searchParams, pathname]);
@@ -191,7 +262,8 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
     fetch(`/api/challenges/${challengeId}/leaderboard`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.topScorer) setLeaderboard(data.topScorer);
+        if (data.leaderboard) setLeaderboard(data.leaderboard);
+        if (data.totalSubmissions != null) setTotalSubmissions(data.totalSubmissions);
       })
       .catch(() => {});
   }, [challengeId, pastAttempts.length]);
@@ -222,26 +294,6 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
     }
   }, [searchParams, pathname]);
 
-  // Handle tab switching — populate textarea with past attempt's text
-  const handleTabSwitch = (tab: LeftTab) => {
-    if (tab === activeTab) return;
-
-    // Save current draft when leaving reference tab
-    if (activeTab === "reference") {
-      draftTextRef.current = articulationText;
-    }
-
-    setActiveTab(tab);
-
-    if (tab === "reference") {
-      // Restore draft
-      setArticulationText(draftTextRef.current);
-    } else if (typeof tab === "number" && pastAttempts[tab]) {
-      // Show past attempt's articulation
-      setArticulationText(pastAttempts[tab].articulation_text);
-    }
-  };
-
   const handleGenerate = async () => {
     if (!challenge) return;
 
@@ -260,8 +312,6 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
     setError(null);
     setResult(null);
     setFlowState("loading");
-    setActiveTab("reference");
-    draftTextRef.current = trimmed;
 
     try {
       const res = await fetch("/api/generate", {
@@ -319,21 +369,37 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
         created_at: new Date().toISOString(),
       };
       setPastAttempts((prev) => [newAttempt, ...prev]);
-      setActiveTab(0);
-      // Clear draft after successful submission
-      draftTextRef.current = "";
-      setArticulationText(trimmed);
+
+      // Refresh leaderboard after a delay to let the DB settle
+      if (challengeId) {
+        setTimeout(() => {
+          fetch(`/api/challenges/${challengeId}/leaderboard`)
+            .then((res) => res.json())
+            .then((lbData) => {
+              if (lbData.leaderboard) setLeaderboard(lbData.leaderboard);
+              if (lbData.totalSubmissions != null) setTotalSubmissions(lbData.totalSubmissions);
+            })
+            .catch(() => {});
+        }, 1500);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
       setFlowState("input");
     }
   };
 
+  const handleTryAgain = () => {
+    setResult(null);
+    setFlowState("input");
+    // Keep text — user can refine and resubmit
+    editorRef.current?.focus();
+    editorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const canGenerate =
     articulationText.trim().length >= 10 &&
     challenge !== null &&
-    !isLoading &&
-    !isViewingPastAttempt;
+    !isLoading;
 
   const charLimit = challenge?.character_limit ?? 150;
   const charPercent = Math.min((charCount / charLimit) * 100, 100);
@@ -344,54 +410,48 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
       ? "bg-primary"
       : "bg-primary/40";
 
-  const getLeftPanelImage = (): {
-    src: string;
-    alt: string;
-    label: string;
-  } | null => {
-    if (activeTab === "reference" && challenge) {
-      return {
-        src: challenge.reference_image_url,
-        alt: `Reference: ${challenge.title}`,
-        label: "Reference Image",
-      };
-    }
-    if (typeof activeTab === "number" && pastAttempts[activeTab]) {
-      const attempt = pastAttempts[activeTab];
-      return {
-        src: attempt.generated_image_url,
-        alt: `Attempt #${pastAttempts.length - activeTab}`,
-        label: `Score: ${attempt.score} / 100`,
-      };
-    }
-    return null;
-  };
-
-  const leftImage = getLeftPanelImage();
-
   return (
     <main className="min-h-screen px-4 py-6">
       <div className="mx-auto max-w-6xl">
-        {/* Dark header for challenge screen */}
-        <header className="mb-8 flex items-center justify-between border-b border-white/[0.08] pb-6">
-          <Link href="/dashboard" className="font-handjet text-2xl tracking-wider text-white">
+        {/* Header */}
+        <header className="mb-8 flex items-center justify-between border-b border-border pb-6">
+          <Link href="/dashboard" className="font-handjet text-2xl tracking-wider text-foreground">
             ARTICULATE_
           </Link>
           <div className="flex items-center gap-6">
             <Link
               href="/dashboard"
-              className="text-[11px] tracking-[0.2em] text-white/40 transition-colors hover:text-white/70"
+              className="text-[11px] tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
             >
               DASHBOARD
             </Link>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/[0.08] px-4 py-1.5">
-              <span className="text-[11px] tracking-[0.15em] text-white/40">
+            <Link
+              href="/profile"
+              className="text-[11px] tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              PROFILE
+            </Link>
+            <div className="flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5">
+              <span className="text-[11px] tracking-[0.15em] text-muted-foreground">
                 CREDITS
               </span>
               <span className="font-mono text-sm font-semibold text-primary">
                 {creditBalance !== null ? creditBalance : "--"}
               </span>
             </div>
+            {themeMounted && (
+              <button
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {resolvedTheme === "dark" ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                )}
+              </button>
+            )}
             <UserButton afterSignOutUrl="/" />
           </div>
         </header>
@@ -413,324 +473,252 @@ export function ChallengeFlow({ challengeId }: ChallengeFlowProps) {
         )}
 
         {flowState === "no-challenge" && (
-          <div className="rounded-xl border border-white/[0.08] bg-[#1A1A1A] p-8 text-center">
-            <p className="mb-2 text-sm text-white/50">
-              No active challenge
-            </p>
-            <p className="text-xs text-white/30">
-              Check back soon for the next challenge.
-            </p>
+          <div className="rounded-xl border border-border bg-card p-8 text-center">
+            <p className="mb-2 text-sm text-muted-foreground">No active challenge</p>
+            <p className="text-xs text-muted-foreground">Check back soon for the next challenge.</p>
           </div>
         )}
 
         {flowState === "error" && !challenge && (
-          <div className="rounded-xl border border-orange-500/30 bg-[#1A1A1A] p-6 text-center">
-            <p className="mb-2 text-sm font-medium text-orange-400">
-              Something went wrong
-            </p>
-            <p className="mb-4 text-sm text-white/50">
-              {error || "An unexpected error occurred."}
-            </p>
+          <div className="rounded-xl border border-orange-500/30 bg-card p-6 text-center">
+            <p className="mb-2 text-sm font-medium text-orange-400">Something went wrong</p>
+            <p className="mb-4 text-sm text-muted-foreground">{error || "An unexpected error occurred."}</p>
             <button
-              onClick={() => {
-                setError(null);
-                setFlowState("input");
-                fetchData();
-              }}
-              className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-primary/90"
+              onClick={() => { setError(null); setFlowState("input"); fetchData(); }}
+              className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90"
             >
               Retry
             </button>
           </div>
         )}
 
-        {/* Main split-panel layout */}
+        {/* ─── Main area ─── */}
         {isActive && challenge && (
           <>
-            {/* Challenge title + best score bar */}
+            {/* Title bar */}
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Link
-                  href="/dashboard"
-                  className="text-white/30 transition-colors hover:text-white/60"
-                >
+                <Link href="/dashboard" className="text-muted-foreground/50 transition-colors hover:text-muted-foreground">
                   &larr;
                 </Link>
-                <h1 className="font-handjet text-lg tracking-wide text-white">
+                <h1 className="font-handjet text-lg tracking-wide text-foreground">
                   {challenge.title}
                 </h1>
-                <span className="text-xs text-white/20">
-                  {challenge.categories?.[0]}
-                </span>
+                <span className="text-xs text-muted-foreground/50">{challenge.categories?.[0]}</span>
               </div>
               <div className="flex items-center gap-4">
-                {leaderboard && (
-                  <span className="text-[11px] text-white/30">
-                    Top: <span className="font-mono text-white/50">{leaderboard.score}</span> by <span className="text-white/50">@{leaderboard.username}</span>
-                  </span>
-                )}
                 {bestScore !== null && (
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-white/30">BEST</span>
-                    <span className="font-mono text-lg font-bold text-primary">
-                      {bestScore}
-                    </span>
-                    <span className="font-mono text-xs text-white/20">/100</span>
+                    <span className="text-[11px] text-muted-foreground">BEST</span>
+                    <span className="font-mono text-lg font-bold text-primary">{bestScore}</span>
+                    <span className="font-mono text-xs text-muted-foreground/50">/100</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="grid min-h-[70vh] grid-cols-1 gap-4 lg:grid-cols-2">
-              {/* LEFT PANEL: Image viewer with tabs */}
-              <div className="flex flex-col">
-                {/* Tab bar */}
-                <div className="flex gap-1 overflow-x-auto rounded-t-xl border-b border-white/[0.06] bg-[#1A1A1A] px-2 pt-2">
-                  <button
-                    onClick={() => handleTabSwitch("reference")}
-                    className={`shrink-0 rounded-t-lg px-4 py-2 text-xs font-medium transition-all ${
-                      activeTab === "reference"
-                        ? "bg-white/10 text-white"
-                        : "text-white/40 hover:text-white/70"
-                    }`}
-                  >
-                    Reference
-                  </button>
-                  {pastAttempts.map((attempt, idx) => (
-                    <button
-                      key={attempt.id}
-                      onClick={() => handleTabSwitch(idx)}
-                      className={`shrink-0 rounded-t-lg px-4 py-2 text-xs font-medium transition-all ${
-                        activeTab === idx
-                          ? "bg-white/10 text-white"
-                          : "text-white/40 hover:text-white/70"
-                      }`}
-                    >
-                      #{pastAttempts.length - idx}{" "}
-                      <span
-                        className={
-                          attempt.score >= 80
-                            ? "text-green-400"
-                            : attempt.score >= 50
-                            ? "text-primary"
-                            : "text-white/40"
-                        }
-                      >
-                        {attempt.score}
-                      </span>
-                    </button>
-                  ))}
+            {/* Split panel: Reference Image | Text Input */}
+            <div className="grid min-h-[50vh] grid-cols-1 gap-4 lg:grid-cols-2">
+              {/* LEFT: Reference image (always visible) */}
+              <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+                <div className="border-b border-border px-4 py-2.5">
+                  <span className="text-[11px] tracking-[0.15em] text-muted-foreground">CHALLENGE</span>
                 </div>
-
-                {/* Image display */}
-                <div className="flex flex-1 items-center justify-center overflow-hidden rounded-b-xl border border-t-0 border-white/[0.06] bg-[#1A1A1A] p-4">
-                  {isLoading && activeTab === "reference" ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <InlineLoading />
-                      <p className="text-xs text-white/40">
-                        Generating...
-                      </p>
+                <div className="flex flex-1 items-center justify-center p-4">
+                  {isLoading ? (
+                    <InlineLoading />
+                  ) : (
+                    <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-lg">
+                      <Image
+                        src={challenge.reference_image_url}
+                        alt={`Reference: ${challenge.title}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        priority
+                      />
                     </div>
-                  ) : leftImage ? (
-                    <div className="flex w-full flex-col items-center gap-3">
-                      <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-lg">
-                        <Image
-                          src={leftImage.src}
-                          alt={leftImage.alt}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 1024px) 100vw, 50vw"
-                          priority
-                        />
-                      </div>
-                      <p className="text-xs text-white/40">
-                        {leftImage.label}
-                      </p>
-                    </div>
-                  ) : null}
+                  )}
                 </div>
               </div>
 
-              {/* RIGHT PANEL: Articulation console */}
-              <div className="flex flex-col">
-                {/* Challenge metadata */}
-                <div className="flex items-center gap-3 rounded-t-xl border-b border-white/[0.06] bg-[#1A1A1A] px-4 py-3 text-xs text-white/40">
-                  <span className="font-medium text-primary">
-                    {challenge.categories?.[0] || "General"}
-                  </span>
-                  <span className="text-white/10">|</span>
-                  <span>Limit: {challenge.character_limit}</span>
-                  <span className="text-white/10">|</span>
-                  <span>Cost: {CREDITS_PER_GENERATION} cr</span>
-                </div>
-
-                {/* Score display */}
-                {flowState === "results" && result && (
-                  <div className="border-b border-primary/20 bg-primary/5 p-6 text-center">
-                    <p className="mb-1 text-[11px] uppercase tracking-widest text-white/30">
-                      Your Score
-                    </p>
-                    <div className="font-mono text-5xl font-bold text-primary">
-                      <ScoreCounter target={result.score} />
+              {/* RIGHT: Text input + submit OR Score results */}
+              <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+                {/* Results view with score bubbles */}
+                {flowState === "results" && result ? (
+                  <div className="flex flex-1 flex-col">
+                    {/* Score bubbles */}
+                    <div className="flex flex-1 flex-col items-center justify-center p-6">
+                      <p className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">
+                        Your Score
+                      </p>
+                      <p className={`mb-4 text-xs ${getScoreLabel(result.score).className}`}>
+                        {getScoreLabel(result.score).text}
+                      </p>
+                      <ScoreBubbles total={result.score} breakdown={result.scoreBreakdown} />
+                      <p className="mt-4 text-[11px] text-muted-foreground/50">
+                        Credits spent: {result.creditsSpent} &middot; Remaining: {result.remainingBalance}
+                      </p>
                     </div>
-                    <p className={`mt-1 text-xs ${getScoreLabel(result.score).className}`}>
-                      {getScoreLabel(result.score).text}
-                    </p>
-                    <div className="mx-auto mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-white/10">
+                    {/* TRY AGAIN button */}
+                    <div className="border-t border-border p-4">
+                      <button
+                        onClick={handleTryAgain}
+                        className="w-full rounded-lg border border-primary/30 bg-primary/10 py-3 text-sm font-medium tracking-wider text-primary transition-all hover:bg-primary/20"
+                      >
+                        TRY AGAIN?
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Input view */
+                  <div className="flex flex-1 flex-col">
+                    {/* Metadata bar */}
+                    <div className="flex items-center gap-3 border-b border-border px-4 py-2.5 text-xs text-muted-foreground">
+                      <span className="font-medium text-primary">
+                        {challenge.categories?.[0] || "General"}
+                      </span>
+                      <span className="text-border">|</span>
+                      <span>Limit: {challenge.character_limit}</span>
+                    </div>
+
+                    {/* Error */}
+                    {error && (
+                      <div className="border-b border-orange-500/20 bg-orange-500/5 px-4 py-3">
+                        <p className="text-xs text-orange-400">{error}</p>
+                      </div>
+                    )}
+
+                    {/* Textarea */}
+                    <textarea
+                      ref={editorRef}
+                      value={articulationText}
+                      onChange={(e) => setArticulationText(e.target.value)}
+                      disabled={isLoading}
+                      maxLength={challenge.character_limit}
+                      placeholder="Describe the reference image with precision..."
+                      className="flex-1 resize-none border-0 bg-transparent p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
+                      style={{ minHeight: "200px" }}
+                    />
+
+                    {/* Character bar */}
+                    <div className="mx-4 h-1 overflow-hidden rounded-full bg-muted">
                       <div
-                        className="h-full rounded-full bg-primary transition-all duration-[1500ms] ease-out"
-                        style={{ width: `${result.score}%` }}
+                        className={`h-full rounded-full transition-all duration-150 ${charBarColor}`}
+                        style={{ width: `${charPercent}%` }}
                       />
                     </div>
-                    {/* Score Autopsy breakdown */}
-                    {result.scoreBreakdown && (
-                      <div className="mx-auto mt-4 max-w-xs space-y-2">
-                        <BreakdownBar label="Subject" score={result.scoreBreakdown.subject} max={35} />
-                        <BreakdownBar label="Composition" score={result.scoreBreakdown.composition} max={25} />
-                        <BreakdownBar label="Color" score={result.scoreBreakdown.color} max={20} />
-                        <BreakdownBar label="Detail" score={result.scoreBreakdown.detail} max={20} />
+
+                    {/* Stats */}
+                    <div className="flex items-center justify-between px-4 py-2 text-[11px] text-muted-foreground">
+                      <div className="flex gap-4">
+                        <span>{charCount}/{challenge.character_limit} chars</span>
+                        <span>{wordCount} words</span>
+                        <span>{wpm} wpm</span>
                       </div>
-                    )}
-                    <div className="mt-3 text-[11px] text-white/30">
-                      Credits spent: {result.creditsSpent} &middot; Remaining: {result.remainingBalance}
+                      <span
+                        className={
+                          articulationText.trim().length >= 10
+                            ? "text-green-400"
+                            : charCount > 0
+                            ? "text-primary"
+                            : ""
+                        }
+                      >
+                        {charCount === 0 ? "Idle" : articulationText.trim().length >= 10 ? "Ready" : "Composing"}
+                      </span>
+                    </div>
+
+                    {/* Submit */}
+                    <div className="border-t border-border p-4">
+                      <button
+                        onClick={handleGenerate}
+                        disabled={!canGenerate}
+                        className="w-full rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40"
+                      >
+                        {isLoading ? "Generating..." : `Submit (${CREDITS_PER_GENERATION} credits)`}
+                      </button>
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
 
-                {/* Error display */}
-                {error && (
-                  <div className="border-b border-orange-500/20 bg-orange-500/5 px-4 py-3">
-                    <p className="text-xs text-orange-400">{error}</p>
+            {/* ─── Below: Submissions (left) + Leaderboard (right) ─── */}
+            <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+              {/* Submissions — left */}
+              <div>
+                <h2 className="mb-4 text-xs font-medium tracking-[0.15em] text-muted-foreground">
+                  SUBMISSIONS
+                  {pastAttempts.length > 0 && (
+                    <span className="ml-2 font-mono text-muted-foreground">({pastAttempts.length})</span>
+                  )}
+                </h2>
+                {pastAttempts.length === 0 ? (
+                  <div className="rounded-xl border border-border bg-card p-8 text-center">
+                    <p className="text-sm text-muted-foreground">No attempts yet. Write your description above and submit.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pastAttempts.map((attempt, idx) => (
+                      <AttemptCard
+                        key={attempt.id}
+                        attempt={attempt}
+                        challenge={challenge}
+                        index={idx}
+                        total={pastAttempts.length}
+                      />
+                    ))}
                   </div>
                 )}
+              </div>
 
-                {/* Viewing past attempt indicator + breakdown */}
-                {isViewingPastAttempt && !isLoading && (
-                  <>
-                    <div className="border-b border-white/[0.06] bg-white/[0.03] px-4 py-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] text-white/30">
-                          Attempt #{pastAttempts.length - (activeTab as number)} &mdash;{" "}
-                          <button
-                            onClick={() => handleTabSwitch("reference")}
-                            className="text-primary hover:text-primary/80"
-                          >
-                            back to editor
-                          </button>
-                        </p>
-                        <span className="font-mono text-sm font-bold text-primary">
-                          {pastAttempts[activeTab as number]?.score}/100
+              {/* Leaderboard — right */}
+              <div>
+                <h2 className="mb-4 text-xs font-medium tracking-[0.15em] text-muted-foreground">
+                  LEADERBOARD
+                </h2>
+                {leaderboard.length === 0 ? (
+                  <div className="rounded-xl border border-border bg-card p-8 text-center">
+                    <p className="text-sm text-muted-foreground">No scores yet.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-border bg-card">
+                    {leaderboard.map((entry, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex items-center justify-between px-5 py-3.5 border-b border-border ${idx === 0 ? "bg-primary/5" : ""}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className={`w-6 font-mono text-sm ${idx === 0 ? "font-bold text-primary" : "text-muted-foreground"}`}>
+                            {entry.rank}
+                          </span>
+                          <span className={`text-sm ${idx === 0 ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+                            @{entry.username}
+                          </span>
+                        </div>
+                        <span className={`font-mono text-sm font-bold ${
+                          entry.score >= 80 ? "text-green-400" : entry.score >= 50 ? "text-primary" : "text-muted-foreground"
+                        }`}>
+                          {entry.score}
                         </span>
                       </div>
-                    </div>
-                    {pastAttempts[activeTab as number]?.score_breakdown && (
-                      <div className="border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                        <div className="space-y-1.5">
-                          <BreakdownBar label="Subject" score={pastAttempts[activeTab as number].score_breakdown!.subject} max={35} />
-                          <BreakdownBar label="Composition" score={pastAttempts[activeTab as number].score_breakdown!.composition} max={25} />
-                          <BreakdownBar label="Color" score={pastAttempts[activeTab as number].score_breakdown!.color} max={20} />
-                          <BreakdownBar label="Detail" score={pastAttempts[activeTab as number].score_breakdown!.detail} max={20} />
-                        </div>
+                    ))}
+                    {totalSubmissions > leaderboard.length && (
+                      <div className="px-5 py-3 text-center text-xs text-muted-foreground">
+                        {totalSubmissions - leaderboard.length} more submission{totalSubmissions - leaderboard.length !== 1 ? "s" : ""}
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
-
-                {/* Textarea */}
-                <div className="flex flex-1 flex-col bg-[#1A1A1A]">
-                  <textarea
-                    id="articulation-input"
-                    value={articulationText}
-                    onChange={(e) => {
-                      if (!isViewingPastAttempt) {
-                        setArticulationText(e.target.value);
-                        draftTextRef.current = e.target.value;
-                      }
-                    }}
-                    disabled={isLoading}
-                    readOnly={isViewingPastAttempt}
-                    maxLength={challenge.character_limit}
-                    placeholder="Describe the reference image with precision..."
-                    className={`flex-1 resize-none border-0 bg-transparent p-4 text-sm text-white placeholder:text-white/20 focus:outline-none disabled:opacity-50 ${
-                      isViewingPastAttempt ? "italic text-white/50" : ""
-                    }`}
-                    style={{ minHeight: "200px" }}
-                    aria-describedby="typing-stats"
-                  />
-
-                  {/* Character limit bar */}
-                  <div className="mx-4 h-1 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className={`h-full rounded-full transition-all duration-150 ${charBarColor}`}
-                      style={{ width: `${charPercent}%` }}
-                    />
-                  </div>
-
-                  {/* Stats bar */}
-                  <div
-                    id="typing-stats"
-                    className="flex items-center justify-between px-4 py-2 text-[11px] text-white/30"
-                  >
-                    <div className="flex gap-4">
-                      <span>
-                        {charCount}/{challenge.character_limit} chars
-                      </span>
-                      <span>{wordCount} words</span>
-                      {!isViewingPastAttempt && <span>{wpm} wpm</span>}
-                    </div>
-                    <span
-                      className={
-                        isViewingPastAttempt
-                          ? "text-white/20"
-                          : articulationText.trim().length >= 10
-                          ? "text-green-400"
-                          : charCount > 0
-                          ? "text-primary"
-                          : ""
-                      }
-                    >
-                      {isViewingPastAttempt
-                        ? "Read-only"
-                        : charCount === 0
-                        ? "Idle"
-                        : articulationText.trim().length >= 10
-                        ? "Ready"
-                        : "Composing"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Submit button */}
-                <div className="rounded-b-xl border-t border-white/[0.06] bg-[#1A1A1A] p-4">
-                  {isViewingPastAttempt ? (
-                    <button
-                      onClick={() => handleTabSwitch("reference")}
-                      className="w-full rounded-lg border border-white/[0.08] bg-transparent py-2.5 text-sm font-medium text-white/60 transition-all hover:bg-white/5 hover:text-white"
-                    >
-                      Back to Editor
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleGenerate}
-                      disabled={!canGenerate}
-                      className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white transition-all hover:bg-primary/90 disabled:opacity-40"
-                    >
-                      {isLoading
-                        ? "Generating..."
-                        : `Submit (${CREDITS_PER_GENERATION} credits)`}
-                    </button>
-                  )}
-                </div>
               </div>
             </div>
           </>
         )}
 
         {flowState === "input" && !challenge && !error && (
-          <div className="rounded-xl border border-white/[0.08] bg-[#1A1A1A] p-8 text-center">
-            <p className="text-sm text-white/40">
-              Loading challenge...
-            </p>
+          <div className="rounded-xl border border-border bg-card p-8 text-center">
+            <p className="text-sm text-muted-foreground">Loading challenge...</p>
           </div>
         )}
       </div>

@@ -17,13 +17,13 @@ export default async function ChallengePage({
   const { id } = await params;
 
   return (
-    <div className="dark min-h-screen bg-[#111111]">
+    <div className="min-h-screen bg-background">
       <Suspense
         fallback={
           <main className="px-6 py-8 sm:px-10">
             <div className="mx-auto max-w-6xl">
-              <div className="rounded-xl border border-white/[0.08] bg-[#1A1A1A] p-8 text-center">
-                <p className="text-sm text-white/50">Loading challenge...</p>
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <p className="text-sm text-muted-foreground">Loading challenge...</p>
               </div>
             </div>
           </main>

@@ -6,8 +6,8 @@ import {
 } from "@/types/database";
 
 describe("CREDITS_PER_GENERATION", () => {
-  it("costs 1 credit per generation", () => {
-    expect(CREDITS_PER_GENERATION).toBe(1);
+  it("costs 5 credits per generation", () => {
+    expect(CREDITS_PER_GENERATION).toBe(5);
   });
 });
 
@@ -50,7 +50,7 @@ describe("CATEGORIES", () => {
 });
 
 describe("INITIAL_CREDITS", () => {
-  it("is 5", () => {
-    expect(INITIAL_CREDITS).toBe(5);
+  it("is 25", () => {
+    expect(INITIAL_CREDITS).toBe(25);
   });
 });

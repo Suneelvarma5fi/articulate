@@ -8,19 +8,19 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  // Get the top scorer for this challenge (using admin to bypass RLS)
+  // Get all attempts for this challenge (admin bypasses RLS)
   const { data: attempts } = await supabaseAdmin
     .from("attempts")
     .select("clerk_user_id, score")
     .eq("challenge_id", id)
     .order("score", { ascending: false })
-    .limit(20);
+    .limit(200);
 
   if (!attempts || attempts.length === 0) {
-    return NextResponse.json({ topScorer: null });
+    return NextResponse.json({ leaderboard: [] });
   }
 
-  // Group by user to get their best score
+  // Group by user — keep only best score per user
   const bestByUser = new Map<string, number>();
   for (const a of attempts) {
     const current = bestByUser.get(a.clerk_user_id);
@@ -29,31 +29,33 @@ export async function GET(
     }
   }
 
-  // Find top scorer
-  let topUserId = "";
-  let topScore = 0;
+  // Sort by score descending, take top 10
+  const sorted: { userId: string; score: number }[] = [];
   bestByUser.forEach((score, userId) => {
-    if (score > topScore) {
-      topScore = score;
-      topUserId = userId;
-    }
+    sorted.push({ userId, score });
   });
+  sorted.sort((a, b) => b.score - a.score);
+  const top10 = sorted.slice(0, 10);
 
-  // Fetch username from Clerk
-  let username = "Anonymous";
-  try {
-    const client = await clerkClient();
-    const user = await client.users.getUser(topUserId);
-    username = user.username || user.firstName || "Anonymous";
-  } catch {
-    // Fall back to anonymous
-  }
+  // Fetch usernames from Clerk in parallel
+  const client = await clerkClient();
+  const leaderboard = await Promise.all(
+    top10.map(async (entry, idx) => {
+      let username = "Anonymous";
+      try {
+        const user = await client.users.getUser(entry.userId);
+        username = user.username || user.firstName || "Anonymous";
+      } catch {
+        // Fall back to anonymous
+      }
+      return {
+        rank: idx + 1,
+        username,
+        score: entry.score,
+      };
+    })
+  );
 
-  return NextResponse.json({
-    topScorer: {
-      username,
-      score: topScore,
-    },
-    totalAttempts: attempts.length,
-  });
+  const totalSubmissions = sorted.length;
+  return NextResponse.json({ leaderboard, totalSubmissions });
 }

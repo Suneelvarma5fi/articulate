@@ -123,204 +123,174 @@ export default function AdminChallengesPage() {
   };
 
   return (
-    <main className="min-h-screen p-4">
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-8 border border-border px-4 py-2">
-          <span className="text-sm tracking-terminal text-white">
-            ADMIN PANEL
-          </span>
-        </div>
-
-        <nav className="mb-6 flex gap-1 border-b border-border pb-4">
-          <span className="border-b-2 border-primary px-4 py-2 text-xs tracking-wide text-white">
-            UPLOAD CHALLENGE
-          </span>
-          <a
-            href="/admin/submissions"
-            className="px-4 py-2 text-xs tracking-wide text-muted-foreground hover:text-foreground"
-          >
-            REVIEW SUBMISSIONS
-          </a>
-        </nav>
-
-        <div className="mb-6 text-center">
-          <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-            ═══════════════════════════════════════════════
-          </div>
-          <h1 className="my-2 text-lg font-bold tracking-wide text-white">
-            CREATE NEW CHALLENGE
-          </h1>
-          <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-            ═══════════════════════════════════════════════
-          </div>
-        </div>
+    <main className="px-6 py-8 sm:px-10">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="mb-6 text-lg font-semibold tracking-wide text-foreground">
+          Create New Challenge
+        </h1>
 
         {message && (
           <div
-            className={`mb-4 border p-3 text-center text-sm ${
+            className={`mb-6 rounded-lg border p-4 text-sm ${
               message.type === "success"
-                ? "border-success text-success"
-                : "border-destructive text-destructive"
+                ? "border-green-500/30 bg-green-500/5 text-green-600 dark:text-green-400"
+                : "border-red-500/30 bg-red-500/5 text-red-600 dark:text-red-400"
             }`}
           >
             {message.text}
           </div>
         )}
 
-        <div className="space-y-4">
-          {/* Title */}
-          <div>
-            <label className="mb-1 block text-xs tracking-wide text-muted-foreground">
-              TITLE:
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Challenge title..."
-              className="input-terminal"
-            />
-          </div>
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="space-y-5">
+            {/* Title */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground">
+                TITLE
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Challenge title..."
+                className="input-clean"
+              />
+            </div>
 
-          {/* Reference Image File */}
-          <div>
-            <label className="mb-1 block text-xs tracking-wide text-muted-foreground">
-              REFERENCE IMAGE:
-            </label>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="cursor-pointer border border-dashed border-border p-6 text-center transition-colors hover:border-primary"
-            >
-              {imagePreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="mx-auto mb-2 max-h-48 object-contain"
+            {/* Reference Image File */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground">
+                REFERENCE IMAGE
+              </label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="cursor-pointer rounded-lg border border-dashed border-border p-8 text-center transition-colors hover:border-primary hover:bg-primary/5"
+              >
+                {imagePreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="mx-auto mb-3 max-h-48 rounded-lg object-contain"
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Click to select an image file
+                  </p>
+                )}
+                {imageFile && (
+                  <p className="text-xs text-muted-foreground">
+                    {imageFile.name}
+                  </p>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+
+            {/* Categories */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground">
+                CATEGORIES
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className={`rounded-full border px-4 py-1.5 text-xs transition-all ${
+                      selectedCategories.includes(cat)
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Character Limit */}
+              <div>
+                <label className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground">
+                  CHARACTER LIMIT
+                </label>
+                <input
+                  type="number"
+                  value={characterLimit}
+                  onChange={(e) =>
+                    setCharacterLimit(parseInt(e.target.value, 10) || 150)
+                  }
+                  min={50}
+                  max={500}
+                  className="input-clean w-32"
                 />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Click to select an image file
-                </p>
-              )}
-              {imageFile && (
-                <p className="text-xs text-muted-foreground">
-                  {imageFile.name}
-                </p>
-              )}
+              </div>
+
+              {/* Active Date */}
+              <div>
+                <label className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground">
+                  ACTIVE DATE
+                </label>
+                <input
+                  type="date"
+                  value={activeDate}
+                  onChange={(e) => setActiveDate(e.target.value)}
+                  className="input-clean w-48"
+                />
+              </div>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </div>
 
-          {/* Categories */}
-          <div>
-            <label className="mb-2 block text-xs tracking-wide text-muted-foreground">
-              CATEGORIES:
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => toggleCategory(cat)}
-                  className={`border px-3 py-2 text-left text-xs transition-all ${
-                    selectedCategories.includes(cat)
-                      ? "border-primary text-primary"
-                      : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
-                  }`}
-                >
-                  {selectedCategories.includes(cat) ? "[x]" : "[ ]"} {cat}
-                </button>
-              ))}
-            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="btn-primary w-full py-3"
+            >
+              {loading ? "Creating..." : "Create Challenge"}
+            </button>
           </div>
-
-          {/* Character Limit */}
-          <div>
-            <label className="mb-1 block text-xs tracking-wide text-muted-foreground">
-              CHARACTER LIMIT:
-            </label>
-            <input
-              type="number"
-              value={characterLimit}
-              onChange={(e) =>
-                setCharacterLimit(parseInt(e.target.value, 10) || 150)
-              }
-              min={50}
-              max={500}
-              className="input-terminal w-32"
-            />
-          </div>
-
-          {/* Active Date */}
-          <div>
-            <label className="mb-1 block text-xs tracking-wide text-muted-foreground">
-              ACTIVE DATE:
-            </label>
-            <input
-              type="date"
-              value={activeDate}
-              onChange={(e) => setActiveDate(e.target.value)}
-              className="input-terminal w-48"
-            />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="btn-terminal-primary w-full"
-          >
-            {loading ? "CREATING..." : "[ C R E A T E ]"}
-          </button>
         </div>
 
         {/* Existing Challenges */}
         {challenges.length > 0 && (
           <div className="mt-10">
-            <div className="mb-4 text-center">
-              <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-                ═══════════════════════════════════════════════
-              </div>
-              <h2 className="my-2 text-lg font-bold tracking-wide text-white">
-                EXISTING CHALLENGES
-              </h2>
-              <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-                ═══════════════════════════════════════════════
-              </div>
-            </div>
+            <h2 className="mb-4 text-sm font-semibold tracking-wide text-foreground">
+              Existing Challenges ({challenges.length})
+            </h2>
 
             <div className="space-y-2">
               {challenges.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between border border-border px-4 py-3"
+                  className="flex items-center justify-between rounded-lg border border-border bg-card px-5 py-3.5 shadow-sm"
                 >
-                  <div>
-                    <span className="text-sm text-white">{c.title}</span>
-                    <span className="ml-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-foreground">{c.title}</span>
+                    <span className="text-xs text-muted-foreground">
                       {c.active_date}
                     </span>
                     <span
-                      className={`ml-2 text-xs ${
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
                         c.status === "active"
-                          ? "text-success"
-                          : "text-muted-foreground"
+                          ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      [{c.status.toUpperCase()}]
+                      {c.status.toUpperCase()}
                     </span>
                   </div>
                   <button
                     onClick={() => handleDelete(c.id)}
                     disabled={deleting === c.id}
-                    className="text-xs text-destructive hover:text-red-400"
+                    className="text-xs text-destructive transition-colors hover:text-red-400"
                   >
-                    {deleting === c.id ? "..." : "[ DELETE ]"}
+                    {deleting === c.id ? "..." : "Delete"}
                   </button>
                 </div>
               ))}

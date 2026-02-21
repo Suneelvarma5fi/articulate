@@ -15,6 +15,18 @@ export interface User {
   bio: string | null;
   interests: string[];
   is_public: boolean;
+  invite_code: string | null;
+  created_at: string;
+}
+
+export interface InviteCode {
+  id: string;
+  code: string;
+  created_by: string | null;
+  max_uses: number;
+  used_count: number;
+  expires_at: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -71,24 +83,24 @@ export interface ChallengeSubmission {
   created_at: string;
 }
 
-export const CREDITS_PER_GENERATION = 1;
+export const CREDITS_PER_GENERATION = 5;
 
 export const CREDIT_PACKAGES = [
-  { credits: 20, price: 499, label: "20 CREDITS", priceLabel: "$4.99", perCredit: "$0.25" },
+  { credits: 100, price: 499, label: "100 CREDITS", priceLabel: "$4.99", perCredit: "$0.05" },
   {
-    credits: 60,
+    credits: 300,
     price: 999,
-    label: "60 CREDITS",
+    label: "300 CREDITS",
     priceLabel: "$9.99",
-    perCredit: "$0.17",
+    perCredit: "$0.03",
     badge: "POPULAR",
   },
   {
-    credits: 150,
+    credits: 750,
     price: 1999,
-    label: "150 CREDITS",
+    label: "750 CREDITS",
     priceLabel: "$19.99",
-    perCredit: "$0.13",
+    perCredit: "$0.03",
     badge: "BEST VALUE",
   },
 ] as const;
@@ -108,9 +120,9 @@ export const CATEGORIES = [
 
 // Dodo Payments product IDs — filled in after creating products in dashboard
 export const DODO_PRODUCT_IDS: string[] = [
-  process.env.NEXT_PUBLIC_DODO_PRODUCT_STARTER || "",  // 20 credits
-  process.env.NEXT_PUBLIC_DODO_PRODUCT_STANDARD || "",  // 100 credits
-  process.env.NEXT_PUBLIC_DODO_PRODUCT_PRO || "",       // 300 credits
+  process.env.NEXT_PUBLIC_DODO_PRODUCT_STARTER || "",  // 100 credits
+  process.env.NEXT_PUBLIC_DODO_PRODUCT_STANDARD || "",  // 300 credits
+  process.env.NEXT_PUBLIC_DODO_PRODUCT_PRO || "",       // 750 credits
 ];
 
-export const INITIAL_CREDITS = 5;
+export const INITIAL_CREDITS = 25;

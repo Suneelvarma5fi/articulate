@@ -48,55 +48,27 @@ export default function AdminSubmissionsPage() {
     setActionLoading(null);
   };
 
-  const statusColor = {
-    pending: "text-primary",
-    approved: "text-success",
-    rejected: "text-destructive",
+  const statusStyles: Record<string, string> = {
+    pending: "bg-primary/10 text-primary",
+    approved: "bg-green-500/10 text-green-600 dark:text-green-400",
+    rejected: "bg-red-500/10 text-red-600 dark:text-red-400",
   };
 
   return (
-    <main className="min-h-screen p-4">
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-8 border border-border px-4 py-2">
-          <span className="text-sm tracking-terminal text-white">
-            ADMIN PANEL
-          </span>
-        </div>
-
-        <nav className="mb-6 flex gap-1 border-b border-border pb-4">
-          <a
-            href="/admin/challenges"
-            className="px-4 py-2 text-xs tracking-wide text-muted-foreground hover:text-foreground"
-          >
-            UPLOAD CHALLENGE
-          </a>
-          <span className="border-b-2 border-primary px-4 py-2 text-xs tracking-wide text-white">
-            REVIEW SUBMISSIONS
-          </span>
-        </nav>
-
-        <div className="mb-6 text-center">
-          <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-            ═══════════════════════════════════════════════
-          </div>
-          <h1 className="my-2 text-lg font-bold tracking-wide text-white">
-            CHALLENGE SUBMISSIONS
-          </h1>
-          <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
-            ═══════════════════════════════════════════════
-          </div>
-        </div>
+    <main className="px-6 py-8 sm:px-10">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="mb-6 text-lg font-semibold tracking-wide text-foreground">
+          Review Submissions
+        </h1>
 
         {loading && (
-          <div className="text-center">
-            <span className="text-sm text-muted-foreground">
-              Loading<span className="cursor-blink text-primary">_</span>
-            </span>
+          <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
+            <p className="text-sm text-muted-foreground">Loading...</p>
           </div>
         )}
 
         {!loading && submissions.length === 0 && (
-          <div className="terminal-box p-8 text-center">
+          <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
             <p className="text-sm text-muted-foreground">
               No submissions to review.
             </p>
@@ -105,9 +77,9 @@ export default function AdminSubmissionsPage() {
 
         <div className="space-y-4">
           {submissions.map((sub) => (
-            <div key={sub.id} className="terminal-box p-4">
-              <div className="mb-3 flex items-start gap-4">
-                <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden border border-border">
+            <div key={sub.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <div className="mb-4 flex items-start gap-4">
+                <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-border">
                   <Image
                     src={sub.reference_image_url}
                     alt={sub.title}
@@ -117,8 +89,8 @@ export default function AdminSubmissionsPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-white">{sub.title}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm font-semibold text-foreground">{sub.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Categories: {sub.categories.join(", ")}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -128,9 +100,9 @@ export default function AdminSubmissionsPage() {
                     Submitted:{" "}
                     {new Date(sub.created_at).toLocaleDateString()}
                   </p>
-                  <p className={`text-xs font-bold ${statusColor[sub.status]}`}>
+                  <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-medium ${statusStyles[sub.status] || ""}`}>
                     {sub.status.toUpperCase()}
-                  </p>
+                  </span>
                 </div>
               </div>
 
@@ -143,7 +115,7 @@ export default function AdminSubmissionsPage() {
                         value={rejectionReason}
                         onChange={(e) => setRejectionReason(e.target.value)}
                         placeholder="Rejection reason..."
-                        className="input-terminal text-xs"
+                        className="input-clean text-xs"
                       />
                       <div className="flex gap-2">
                         <button
@@ -151,18 +123,18 @@ export default function AdminSubmissionsPage() {
                             handleReview(sub.id, "reject", rejectionReason)
                           }
                           disabled={actionLoading === sub.id}
-                          className="btn-terminal-primary flex-1 py-2 text-xs !border-destructive !text-destructive"
+                          className="btn-secondary flex-1 py-2 text-xs text-destructive"
                         >
-                          CONFIRM REJECT
+                          Confirm Reject
                         </button>
                         <button
                           onClick={() => {
                             setRejectingId(null);
                             setRejectionReason("");
                           }}
-                          className="btn-terminal-secondary flex-1 py-2 text-xs"
+                          className="btn-secondary flex-1 py-2 text-xs"
                         >
-                          CANCEL
+                          Cancel
                         </button>
                       </div>
                     </div>
@@ -171,16 +143,16 @@ export default function AdminSubmissionsPage() {
                       <button
                         onClick={() => handleReview(sub.id, "approve")}
                         disabled={actionLoading === sub.id}
-                        className="btn-terminal-primary flex-1 py-2 text-xs"
+                        className="btn-primary flex-1 py-2 text-xs"
                       >
-                        APPROVE
+                        Approve
                       </button>
                       <button
                         onClick={() => setRejectingId(sub.id)}
                         disabled={actionLoading === sub.id}
-                        className="btn-terminal-secondary flex-1 py-2 text-xs"
+                        className="btn-secondary flex-1 py-2 text-xs"
                       >
-                        REJECT
+                        Reject
                       </button>
                     </>
                   )}
@@ -188,7 +160,7 @@ export default function AdminSubmissionsPage() {
               )}
 
               {sub.status === "rejected" && sub.rejection_reason && (
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-3 text-xs text-muted-foreground">
                   Reason: {sub.rejection_reason}
                 </p>
               )}

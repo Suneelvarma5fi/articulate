@@ -11,14 +11,14 @@ export default function PrivacyPage() {
           &larr; Back
         </Link>
 
-        <h1 className="mb-6 text-2xl font-bold tracking-wide text-white">
+        <h1 className="mb-6 text-2xl font-bold tracking-wide text-foreground">
           PRIVACY POLICY
         </h1>
 
         <div className="space-y-4 text-sm text-muted-foreground">
           <p>Last updated: February 2026</p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Information We Collect
           </h2>
           <p>
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
             and scoring data.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             How We Use Your Information
           </h2>
           <p>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             your personal information to third parties.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Third-Party Services
           </h2>
           <p>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
             processing. Each service has its own privacy policy.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Data Retention
           </h2>
           <p>
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             may request account deletion and data export by contacting us.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Your Rights
           </h2>
           <p>

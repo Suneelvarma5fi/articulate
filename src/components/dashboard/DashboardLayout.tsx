@@ -147,8 +147,8 @@ export function DashboardLayout() {
         <Header creditBalance={creditBalance} />
 
         {/* Top: Streak + Challenges + Calendar */}
-        <section className="mb-10">
-          <p className="mb-3 font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+        <section className="mb-10 mt-8">
+          <p className="mb-4 font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             Recent Challenges
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_220px]">
@@ -171,8 +171,8 @@ export function DashboardLayout() {
               )}
             </div>
 
-            {/* Right: Calendar */}
-            <div>
+            {/* Right: Calendar — match card height */}
+            <div className="min-w-0 h-44 max-w-[220px] max-lg:max-w-full">
               <ActivityCalendar
                 calendarData={dashboardData?.calendarData ?? {}}
                 month={calendarMonth}
@@ -184,22 +184,9 @@ export function DashboardLayout() {
 
         {/* Bottom: Table + Category sidebar */}
         <section>
-          {/* Section header with counter, search, and pick-one */}
+          {/* Section header with search, counter, and pick-one */}
           <div className="mb-3 flex flex-wrap items-center gap-3">
-            <p className="font-handjet text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              All Challenges
-            </p>
-
-            {/* X / Y solved counter */}
-            {dashboardData && (
-              <span className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                {dashboardData.solvedCount} / {dashboardData.totalCount}
-              </span>
-            )}
-
-            <div className="flex-1" />
-
-            {/* Search */}
+            {/* Search — left-aligned */}
             <div className="relative">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -225,13 +212,34 @@ export function DashboardLayout() {
               />
             </div>
 
-            {/* Pick one for me */}
+            {/* X / Y solved counter */}
+            {dashboardData && (
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                {dashboardData.solvedCount} / {dashboardData.totalCount}
+              </span>
+            )}
+
+            <div className="flex-1" />
+
+            {/* Pick one — dice icon */}
             <button
               onClick={handlePickOne}
               disabled={pickingOne}
-              className="h-7 rounded-lg border border-border bg-card px-3 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-40"
+              title="Pick a random challenge"
             >
-              {pickingOne ? "Picking..." : "Pick one for me"}
+              {pickingOne ? (
+                <span className="text-[10px]">...</span>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                  <path d="M16 8h.01" />
+                  <path d="M12 12h.01" />
+                  <path d="M8 16h.01" />
+                  <path d="M16 16h.01" />
+                  <path d="M8 8h.01" />
+                </svg>
+              )}
             </button>
           </div>
 

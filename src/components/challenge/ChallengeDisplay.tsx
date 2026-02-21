@@ -15,7 +15,7 @@ export function ChallengeDisplay({ challenge }: ChallengeDisplayProps) {
         <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
           ═══════════════════════════════════════════════
         </div>
-        <h2 className="my-2 text-lg font-bold tracking-wide text-white">
+        <h2 className="my-2 text-lg font-bold tracking-wide text-foreground">
           <LetterScramble text="DAILY CHALLENGE" />
         </h2>
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">

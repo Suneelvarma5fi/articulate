@@ -11,14 +11,14 @@ export default function TermsPage() {
           &larr; Back
         </Link>
 
-        <h1 className="mb-6 text-2xl font-bold tracking-wide text-white">
+        <h1 className="mb-6 text-2xl font-bold tracking-wide text-foreground">
           TERMS OF SERVICE
         </h1>
 
         <div className="space-y-4 text-sm text-muted-foreground">
           <p>Last updated: February 2026</p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Acceptance of Terms
           </h2>
           <p>
@@ -26,7 +26,7 @@ export default function TermsPage() {
             do not agree, do not use the service.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Service Description
           </h2>
           <p>
@@ -35,16 +35,16 @@ export default function TermsPage() {
             images from your descriptions, and receive similarity scores.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Credits and Payments
           </h2>
           <p>
-            Credits are required to generate images. Credits can be purchased
-            via Dodo Payments. New users receive 5 free credits upon registration.
+            Credits are required to generate images (5 credits per generation). Credits can be purchased
+            via Dodo Payments. New users receive 25 free credits upon registration.
             Credits are non-transferable between accounts.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             User Content
           </h2>
           <p>
@@ -53,7 +53,7 @@ export default function TermsPage() {
             the submitted images as challenge content.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Acceptable Use
           </h2>
           <p>
@@ -62,7 +62,7 @@ export default function TermsPage() {
             or AI-generated submissions may be flagged and rejected.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Limitation of Liability
           </h2>
           <p>

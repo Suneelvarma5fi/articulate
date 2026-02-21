@@ -11,14 +11,14 @@ export default function RefundPage() {
           &larr; Back
         </Link>
 
-        <h1 className="mb-6 text-2xl font-bold tracking-wide text-white">
+        <h1 className="mb-6 text-2xl font-bold tracking-wide text-foreground">
           REFUND POLICY
         </h1>
 
         <div className="space-y-4 text-sm text-muted-foreground">
           <p>Last updated: February 2026</p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Credit Purchases
           </h2>
           <p>
@@ -26,7 +26,7 @@ export default function RefundPage() {
             added to your account, except in cases of technical errors.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Failed Generations
           </h2>
           <p>
@@ -35,7 +35,7 @@ export default function RefundPage() {
             required on your part.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">
+          <h2 className="pt-4 text-base font-bold text-foreground">
             Exceptional Circumstances
           </h2>
           <p>
@@ -44,7 +44,7 @@ export default function RefundPage() {
             for exceptional circumstances are handled on a case-by-case basis.
           </p>
 
-          <h2 className="pt-4 text-base font-bold text-white">Contact</h2>
+          <h2 className="pt-4 text-base font-bold text-foreground">Contact</h2>
           <p>
             For refund inquiries, please reach out to our support team with
             your account email and transaction details.

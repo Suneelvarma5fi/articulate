@@ -68,7 +68,7 @@ export function ActivityCalendar({
   })();
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="h-full overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm">
       {/* Month navigation */}
       <div className="mb-3 flex items-center justify-between">
         <button

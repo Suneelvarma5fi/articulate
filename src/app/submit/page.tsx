@@ -78,7 +78,7 @@ export default function SubmitChallengePage() {
           <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
             ═══════════════════════════════════════════════
           </div>
-          <h1 className="my-2 text-lg font-bold tracking-wide text-white">
+          <h1 className="my-2 text-lg font-bold tracking-wide text-foreground">
             SUBMIT A CHALLENGE
           </h1>
           <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">

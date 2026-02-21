@@ -66,7 +66,7 @@ export function PurchaseModal({
     >
       <div className="terminal-box w-full max-w-md p-6" ref={modalRef} tabIndex={-1}>
         <div className="mb-6 text-center">
-          <p className="mb-2 text-sm font-bold tracking-wide text-white">
+          <p className="mb-2 text-sm font-bold tracking-wide text-foreground">
             INSUFFICIENT CREDITS
           </p>
           <p className="text-xs text-muted-foreground">
@@ -85,7 +85,7 @@ export function PurchaseModal({
           {CREDIT_PACKAGES.map((pkg, index) => (
             <div key={index} className="terminal-box p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">
+                <span className="text-sm font-bold text-foreground">
                   {pkg.label}
                 </span>
                 <div className="flex items-center gap-2">
@@ -94,11 +94,11 @@ export function PurchaseModal({
                       {pkg.badge}
                     </span>
                   )}
-                  <span className="text-sm text-white">{pkg.priceLabel}</span>
+                  <span className="text-sm text-foreground">{pkg.priceLabel}</span>
                 </div>
               </div>
               <div className="mb-3 text-xs text-muted-foreground">
-                {pkg.credits} generations
+                {pkg.credits} credits ({pkg.credits / 5} generations)
               </div>
               <button
                 onClick={() => handlePurchase(index)}

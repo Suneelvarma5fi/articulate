@@ -168,9 +168,9 @@ export function ProfileView() {
       <div className="mx-auto max-w-6xl">
         <Header creditBalance={kpis?.creditBalance ?? null} />
 
-        {/* Top row: User card + KPIs + Score graph */}
-        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[200px_1fr_1fr]">
-          {/* User card */}
+        {/* Top: Profile (left) + Stats grid (right) */}
+        <div className="mb-6 mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[200px_1fr]">
+          {/* User card — independent height */}
           <div className="card flex flex-col items-center p-5">
             <input
               ref={fileInputRef}
@@ -232,86 +232,111 @@ export function ProfileView() {
 
             {/* Profile actions */}
             <div className="mt-3 flex w-full flex-col gap-1.5">
-              <button
-                onClick={() => setEditingBio(!editingBio)}
-                className="btn-ghost w-full py-1.5 text-[11px]"
-              >
-                {editingBio ? "Cancel" : "Edit Profile"}
-              </button>
-              {profileData?.profile?.isPublic && (
+              <div className="flex gap-1.5">
                 <button
-                  onClick={handleCopyShareLink}
-                  className="btn-ghost w-full py-1.5 text-[11px]"
+                  onClick={() => setEditingBio(!editingBio)}
+                  className="btn-ghost flex-1 py-1.5"
+                  title={editingBio ? "Cancel editing" : "Edit Profile"}
                 >
-                  {copiedLink ? "Copied!" : "Share Profile"}
+                  {editingBio ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                  )}
                 </button>
-              )}
+                {profileData?.profile?.isPublic && (
+                  <button
+                    onClick={handleCopyShareLink}
+                    className="btn-ghost flex-1 py-1.5"
+                    title={copiedLink ? "Copied!" : "Share Profile"}
+                  >
+                    {copiedLink ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-primary"><polyline points="20 6 9 17 4 12" /></svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+                    )}
+                  </button>
+                )}
+              </div>
               <Link
                 href="/submit"
-                className="btn-secondary w-full py-1.5 text-center text-[11px]"
+                className="btn-secondary w-full py-1.5 text-center text-[9px]"
               >
                 Submit Challenge
               </Link>
             </div>
           </div>
 
-          {/* KPIs */}
-          <div className="card p-5">
-            <p className="mb-4 text-xs font-medium text-muted-foreground">
-              Performance
-              {selectedCategory && (
-                <span className="ml-1 text-primary">
-                  / {selectedCategory}
-                </span>
-              )}
-            </p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <div>
-                <p className="font-mono text-2xl font-bold text-foreground">
-                  {kpis?.totalAttempts ?? "--"}
+          {/* Right: Performance + Trend (top row) + Heatmap (bottom) */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* KPIs */}
+              <div className="card p-5">
+                <p className="mb-4 text-xs font-medium text-muted-foreground">
+                  Performance
+                  {selectedCategory && (
+                    <span className="ml-1 text-primary">
+                      / {selectedCategory}
+                    </span>
+                  )}
                 </p>
-                <p className="text-[11px] text-muted-foreground">Attempts</p>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <div>
+                    <p className="font-mono text-2xl font-bold text-foreground">
+                      {kpis?.totalAttempts ?? "--"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Attempts</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-2xl font-bold text-foreground">
+                      {kpis?.averageScore ?? "--"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Avg Score</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-2xl font-bold text-primary">
+                      {kpis?.bestScore ?? "--"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Best Score</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-2xl font-bold text-foreground">
+                      {kpis?.challengesAttempted ?? "--"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Challenges</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-2xl font-bold text-foreground">
+                      {kpis?.totalCreditsSpent ?? "--"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Credits Spent</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-2xl font-bold text-primary">
+                      {kpis?.creditBalance ?? "--"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">Balance</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="font-mono text-2xl font-bold text-foreground">
-                  {kpis?.averageScore ?? "--"}
+
+              {/* Score trend graph */}
+              <div className="card p-5">
+                <p className="mb-3 text-xs font-medium text-muted-foreground">
+                  Your Trend
                 </p>
-                <p className="text-[11px] text-muted-foreground">Avg Score</p>
-              </div>
-              <div>
-                <p className="font-mono text-2xl font-bold text-primary">
-                  {kpis?.bestScore ?? "--"}
-                </p>
-                <p className="text-[11px] text-muted-foreground">Best Score</p>
-              </div>
-              <div>
-                <p className="font-mono text-2xl font-bold text-foreground">
-                  {kpis?.challengesAttempted ?? "--"}
-                </p>
-                <p className="text-[11px] text-muted-foreground">Challenges</p>
-              </div>
-              <div>
-                <p className="font-mono text-2xl font-bold text-foreground">
-                  {kpis?.totalCreditsSpent ?? "--"}
-                </p>
-                <p className="text-[11px] text-muted-foreground">Credits Spent</p>
-              </div>
-              <div>
-                <p className="font-mono text-2xl font-bold text-primary">
-                  {kpis?.creditBalance ?? "--"}
-                </p>
-                <p className="text-[11px] text-muted-foreground">Balance</p>
+                <div className="h-32">
+                  <ScoreChart data={profileData?.scoreTrend ?? []} />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Score trend graph */}
-          <div className="card p-5">
-            <p className="mb-3 text-xs font-medium text-muted-foreground">
-              Score Trend
-            </p>
-            <div className="h-32">
-              <ScoreChart data={profileData?.scoreTrend ?? []} />
+            {/* Activity heatmap */}
+            <div className="card overflow-x-auto p-5">
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
+                Activity
+              </p>
+              <ActivityHeatmap data={profileData?.heatmapData ?? []} />
             </div>
           </div>
         </div>
@@ -370,14 +395,6 @@ export function ProfileView() {
             </div>
           </div>
         )}
-
-        {/* Activity heatmap */}
-        <div className="card mb-6 overflow-x-auto p-5">
-          <p className="mb-3 text-xs font-medium text-muted-foreground">
-            Activity
-          </p>
-          <ActivityHeatmap data={profileData?.heatmapData ?? []} />
-        </div>
 
         {/* Category filter bar */}
         <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">

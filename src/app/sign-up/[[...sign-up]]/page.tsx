@@ -12,7 +12,7 @@ export default function SignUpPage() {
       </Link>
       <SignUp afterSignUpUrl="/dashboard" />
       <p className="mt-8 text-xs text-muted-foreground">
-        5 free credits to start. No card needed.
+        25 free credits to start. No card needed.
       </p>
     </main>
   );

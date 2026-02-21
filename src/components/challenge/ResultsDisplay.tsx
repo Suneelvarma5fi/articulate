@@ -42,7 +42,7 @@ export function ResultsDisplay({
         <p className="mb-1 text-xs tracking-wide text-muted-foreground">
           S C O R E
         </p>
-        <div className="mb-4 text-5xl font-bold text-white">
+        <div className="mb-4 text-5xl font-bold text-foreground">
           <ScoreCounter target={score} />
         </div>
         <div className="h-2 w-full overflow-hidden bg-secondary">

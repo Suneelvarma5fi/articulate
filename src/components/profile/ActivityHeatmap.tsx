@@ -35,13 +35,13 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       dataMap.set(d.date, d);
     }
 
-    // Build 52 weeks ending today
+    // Year-level view: Jan 1 of current year through today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const totalDays = 52 * 7;
-    const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - totalDays + 1);
-    // Align to Sunday
+    const yearStart = new Date(today.getFullYear(), 0, 1);
+
+    // Align to the Sunday of the week containing Jan 1
+    const startDate = new Date(yearStart);
     startDate.setDate(startDate.getDate() - startDate.getDay());
 
     const weeks: Array<Array<HeatmapDay & { dayOfWeek: number; isToday: boolean }>> = [];
@@ -54,7 +54,6 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
     while (cursor <= today || currentWeek.length > 0) {
       if (cursor > today && currentWeek.length < 7) {
-        // Pad the final week
         break;
       }
 
@@ -70,13 +69,20 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         isToday,
       });
 
-      // Track month labels
+      // Track month labels — skip if too close to previous
       if (cursor.getMonth() !== lastMonth) {
-        lastMonth = cursor.getMonth();
-        monthLabels.push({
-          label: cursor.toLocaleDateString("en-US", { month: "short" }),
-          weekIndex,
-        });
+        const tooClose =
+          monthLabels.length > 0 &&
+          weekIndex - monthLabels[monthLabels.length - 1].weekIndex < 3;
+        if (!tooClose) {
+          lastMonth = cursor.getMonth();
+          monthLabels.push({
+            label: cursor.toLocaleDateString("en-US", { month: "short" }),
+            weekIndex,
+          });
+        } else {
+          lastMonth = cursor.getMonth();
+        }
       }
 
       cursor.setDate(cursor.getDate() + 1);
@@ -98,14 +104,14 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   return (
     <div className="relative">
       {/* Month labels */}
-      <div className="mb-1 flex pl-8">
+      <div className="mb-1 flex pl-8" style={{ height: 16 }}>
         {monthLabels.map((m, i) => (
           <span
             key={i}
             className="text-[9px] text-muted-foreground"
             style={{
               position: "absolute",
-              left: `${32 + m.weekIndex * 13}px`,
+              left: `${32 + m.weekIndex * 14}px`,
             }}
           >
             {m.label}
@@ -113,9 +119,9 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         ))}
       </div>
 
-      <div className="mt-4 flex gap-0.5">
+      <div className="mt-4 flex gap-[3px]">
         {/* Day labels */}
-        <div className="flex flex-col gap-0.5 pr-1">
+        <div className="flex flex-col gap-[3px] pr-1">
           {DAY_LABELS.map((label, i) => (
             <div
               key={i}
@@ -128,7 +134,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
         {/* Grid */}
         {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-0.5">
+          <div key={wi} className="flex flex-col gap-[3px]">
             {week.map((day) => (
               <div
                 key={day.date}

@@ -85,7 +85,7 @@ export function HistoryView() {
             <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
               ═══════════════════════════════════════════════
             </div>
-            <h1 className="my-2 text-lg font-bold tracking-wide text-white">
+            <h1 className="my-2 text-lg font-bold tracking-wide text-foreground">
               YOUR ATTEMPTS
             </h1>
             <div className="overflow-hidden text-xs tracking-terminal text-muted-foreground">
@@ -144,7 +144,7 @@ export function HistoryView() {
                         <p className="text-xs text-muted-foreground">
                           {formatDate(attempt.created_at)}
                         </p>
-                        <p className="text-sm text-white">
+                        <p className="text-sm text-foreground">
                           {challenge.title || challenge.categories?.[0] || "Challenge"}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -156,7 +156,7 @@ export function HistoryView() {
                     {/* Score + expand */}
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <span className="font-mono text-2xl font-bold text-white">
+                        <span className="font-mono text-2xl font-bold text-foreground">
                           {String(attempt.score).padStart(3, "0")}
                         </span>
                         <span className="text-xs text-muted-foreground">

@@ -97,6 +97,25 @@ create index idx_challenge_submissions_status on challenge_submissions(status);
 create index idx_challenge_submissions_user on challenge_submissions(submitted_by_user_id);
 
 -- ============================================
+-- INVITE CODES
+-- ============================================
+create table invite_codes (
+  id uuid default uuid_generate_v4() primary key,
+  code text not null unique,
+  created_by text references users(clerk_user_id),
+  max_uses integer not null default 1,
+  used_count integer not null default 0,
+  expires_at timestamptz,
+  is_active boolean not null default true,
+  created_at timestamptz default now() not null
+);
+
+create index idx_invite_codes_code on invite_codes(code);
+
+-- Add invite_code to users table
+alter table users add column if not exists invite_code text references invite_codes(code);
+
+-- ============================================
 -- HELPER FUNCTION: Get user credit balance
 -- ============================================
 create or replace function get_credit_balance(user_id text)

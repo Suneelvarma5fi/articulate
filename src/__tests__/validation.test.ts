@@ -72,11 +72,12 @@ describe("validateArticulation", () => {
 });
 
 describe("canAfford", () => {
-  it("allows generation with 1 credit", () => {
-    expect(canAfford(1)).toBe(true);
+  it("allows generation with 5 credits", () => {
+    expect(canAfford(5)).toBe(true);
   });
 
-  it("denies generation with 0 credits", () => {
+  it("denies generation with fewer than 5 credits", () => {
+    expect(canAfford(4)).toBe(false);
     expect(canAfford(0)).toBe(false);
   });
 

@@ -35,8 +35,8 @@ export function Header({ creditBalance }: HeaderProps) {
     <header
       className={`sticky top-0 z-40 transition-all duration-200 ${
         scrolled
-          ? "border-b border-transparent bg-card shadow-sm"
-          : "border-b border-border bg-transparent"
+          ? "border-b border-transparent bg-background shadow-sm"
+          : "border-b border-border bg-background"
       }`}
     >
       <div className="mx-auto flex items-center justify-between px-6 py-4 sm:px-10">

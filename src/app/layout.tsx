@@ -39,31 +39,26 @@ export default function RootLayout({
     <ClerkProvider
       appearance={{
         variables: {
-          colorBackground: "#F5F4F0",
-          colorText: "#1A1A1A",
-          colorTextSecondary: "#6B6B6B",
-          colorPrimary: "#DC2626",
-          colorInputBackground: "#FFFFFF",
-          colorInputText: "#1A1A1A",
+          colorPrimary: "#4F46E5",
           fontFamily: "var(--font-geist-sans), sans-serif",
           borderRadius: "0.75rem",
         },
         elements: {
-          card: "shadow-sm border border-black/[0.06] !bg-white",
+          card: "shadow-sm border border-border !bg-card",
           headerTitle: "font-handjet tracking-wider",
-          headerSubtitle: "text-[#6B6B6B]",
+          headerSubtitle: "text-muted-foreground",
           formButtonPrimary:
-            "bg-[#DC2626] hover:bg-[#B91C1C] text-white font-medium tracking-wide text-sm rounded-full",
+            "bg-primary hover:bg-primary/90 text-primary-foreground font-medium tracking-wide text-sm rounded-full",
           formFieldInput:
-            "border-black/[0.06] bg-white rounded-lg",
-          formFieldLabel: "text-[#1A1A1A]/70",
-          footerActionLink: "text-[#DC2626] hover:text-[#B91C1C]",
+            "border-border bg-background rounded-lg",
+          formFieldLabel: "text-foreground/70",
+          footerActionLink: "text-primary hover:text-primary/80",
           socialButtonsBlockButton:
-            "border-black/[0.06] rounded-lg hover:bg-[#F5F4F0]",
-          dividerLine: "bg-black/[0.06]",
-          dividerText: "text-[#9B9B9B]",
-          userButtonPopoverCard: "border border-black/[0.06] !bg-white shadow-lg",
-          userButtonPopoverActionButton: "hover:bg-[#F5F4F0]",
+            "border-border rounded-lg hover:bg-muted",
+          dividerLine: "bg-border",
+          dividerText: "text-muted-foreground",
+          userButtonPopoverCard: "border border-border !bg-card shadow-lg",
+          userButtonPopoverActionButton: "hover:bg-muted",
           userButtonPopoverFooter: "hidden",
         },
       }}
